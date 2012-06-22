@@ -260,6 +260,7 @@ public class RotamerSearch implements Serializable
 
 	boolean isTemplateOn = false;
 
+	String strandDefault_dgl[][] = null; 
 	
 	// Note that the mutation search functions in this class are relatively
 	//  messy as a result of changing the algorithms multiple times. They
@@ -2485,7 +2486,7 @@ public class RotamerSearch implements Serializable
 				}
 				
 				return;
-			}
+			} // end if depth >= maxdepth
 
 			// If there are no allowables then test with 'native' form of the enzyme
 			int str = mutRes2Strand[depth];
@@ -2573,7 +2574,8 @@ public class RotamerSearch implements Serializable
 		System.out.println("k_const: "+k_const+" pStar: "+printBigNum(pStar,5)+" numConfsPrunedMinDEESteric: "+numConfsPrunedMinDEESteric);
 		
 		//Count the number of non-pruned rotamers
-		for (int curLevel=0; curLevel<treeLevels; curLevel++){
+		
+      for (int curLevel=0; curLevel<treeLevels; curLevel++){
 			if (numRotForResNonPruned[curLevel]==0){ //no non-pruned rotamers for curLevel, so no possible conformations
 				allPruned = true;
 				BigDecimal e = ef.exp(-Ec_const/constRT);
@@ -2592,7 +2594,7 @@ public class RotamerSearch implements Serializable
 				numTotalRotRedNonPruned += numRotForResNonPruned[curLevel];
 		}
 		
-		//logPS.println(Ec_const+" "+numConfsPrunedByMinDEE+" "+numConfsPrunedMinDEESteric+" "+k_const+" "+pStar+" "+numTotalRotRedNonPruned);
+		System.out.println(Ec_const+" "+numConfsPrunedByMinDEE+" "+numConfsPrunedMinDEESteric+" "+k_const+" "+pStar+" "+numTotalRotRedNonPruned);
 		
 		int indicesEMatrixPos[] = new int[numTotalRotRedNonPruned]; //original (in the non-reduced matrices) indices of non-pruned rot to be included
 		int indicesEMatrixAA[] = new int[numTotalRotRedNonPruned];
@@ -3031,17 +3033,19 @@ public class RotamerSearch implements Serializable
 				int numRotForCurAAatPos = strandRot[str].rl.getNumRotForAAtype(curAA);
 				if (numRotForCurAAatPos==0)	//ala or gly
 					numRotForCurAAatPos = 1;
+				int numWTRots = RotamerSearch.numberWTRots(strandMut, this.strandDefault_dgl, curPos, strandRot, mutRes2Strand, mutRes2StrandMutIndex, prunedRotAtRes);
 				
 				for(int curRot=0; curRot<numRotForCurAAatPos; curRot++){
 					try{
 					if ((arpMatrix[curPos][curAA][curRot][curPos][0][0]+getShellRotE(arpMatrix, curPos, curAA, curRot))>=stericE){
 						
 						//int index_r = curPos*totalNumRotamers + rotamerIndexOffset[curAA] + curRot;
+						if (numRotForCurAAatPos > 1 && numWTRots > 1 ){ // DGL dont prune away ala or gly
+							eliminatedRotAtRes.set(curPos,curAA,curRot, true);
 						
-						eliminatedRotAtRes.set(curPos,curAA,curRot, true);
-						
-						prunedIsSteric.set(curPos, curAA, curRot, true);
-						numPruned++;
+							prunedIsSteric.set(curPos, curAA, curRot, true);
+							numPruned++;
+						}
 					}
 				}
 					catch(Exception e){
@@ -3160,6 +3164,8 @@ public class RotamerSearch implements Serializable
 		MSMinBounds minBoundsRun = new MSMinBounds(arpMatrix,numMutable,strandMut,strandRot,
 				pruningE,prunedRotAtRes,splitFlags,useSF,initEw,boundKS,onlyBounds, mutRes2Strand, mutRes2StrandMutIndex);
 		
+		minBoundsRun.setStrandDefault(strandDefault_dgl); 
+		
 		if ( (!boundKS) && (!onlyBounds) ) { //use Bounds to prune new rotamers
 			eliminatedRotAtRes = minBoundsRun.ComputeEliminatedRotConf();
 		}
@@ -3201,6 +3207,8 @@ public class RotamerSearch implements Serializable
 				indIntMinDEE, pairIntMinDEE, splitFlags, useSF, minimizeBB, mutRes2Strand, mutRes2StrandMutIndex,
 				typeDep, useMinDEEPruningEw, Ival);
 		
+		DEERun.setStrandDefault(strandDefault_dgl);
+		
 		eliminatedRotAtRes = DEERun.ComputeEliminatedRotConf();
 		
 		DEERun = null;
@@ -3222,6 +3230,8 @@ public class RotamerSearch implements Serializable
 					splitFlags, useSF, distrDEE, minimizeBB, mutRes2Strand, mutRes2StrandMutIndex, typeDep,
 					doIMinDEE, Ival);
 			
+			DEERunConfSplitting.setStrandDefault(strandDefault_dgl); 
+			
 			eliminatedRotAtRes = DEERunConfSplitting.ComputeEliminatedRotConf();
 			splitFlags = DEERunConfSplitting.getSplitFlags();
 			
@@ -3232,6 +3242,8 @@ public class RotamerSearch implements Serializable
 					numMutable, strandMut, initEw, 
 					strandRot, prunedRotAtRes, resInMut, doMinimize, indIntMinDEE, pairIntMinDEE, 
 					splitFlags, useSF, distrDEE, minimizeBB, mutRes2Strand, mutRes2StrandMutIndex, typeDep, doIMinDEE, Ival);
+			
+			DEERunConfSplitting.setStrandDefault(strandDefault_dgl); 
 			
 			eliminatedRotAtRes = DEERunConfSplitting.ComputeEliminatedRotConf();
 			splitFlags = DEERunConfSplitting.getSplitFlags();
@@ -3253,6 +3265,7 @@ public class RotamerSearch implements Serializable
 				splitFlags, useSF, magicBullet, distrDEE, minimizeBB, scaleInt, maxScale, 
 				mutRes2Strand, mutRes2StrandMutIndex, typeDep, doIMinDEE, Ival);
 		
+		DEERunPairs.setStrandDefault(strandDefault_dgl); 
 		DEERunPairs.ComputeEliminatedRotConf();		
 		splitFlags = DEERunPairs.getSplitFlags();
 		
@@ -3279,6 +3292,7 @@ public class RotamerSearch implements Serializable
 		// If we're doing a mutation search then residues
 		//  are allowed to mutate
 	
+
 		numConfsEvaluated = BigInteger.ZERO;
 		computeEVEnergy = searchComputeEVEnergy;
 		doMinimization = searchDoMinimization;
@@ -3434,6 +3448,8 @@ public class RotamerSearch implements Serializable
 			int curIndex;		System.out.println("curLevel "+curLevel);
 			numPrunedThisLevel = 0;
 			int numWTrots = 0;
+			int numWTrots_dgl = 0; 
+			
 			/*if ((ligPresent)&&(curLevel==(treeLevels-1))){ //the ligand level
 				for (int curRot=0; curRot<numRotForRes[curLevel]; curRot++){ //for all rotamers for the given AA
 					curIndex = numInAS*numTotalRotamers + curRot;
@@ -3464,6 +3480,7 @@ public class RotamerSearch implements Serializable
 				}
 			}
 			numRotForResNonPruned[curLevel] -= numPrunedThisLevel;
+			//numWTrots_dgl = numberWTRots(strandMut, curLevel); 
 			System.out.println("NumWTRots: "+numWTrots);
 		}
 		
@@ -3503,9 +3520,8 @@ public class RotamerSearch implements Serializable
 		System.out.println("ASTAR PRUNING INFO: Total Rots non-pruned for each residue ");
 		for(int i=0;i<treeLevels;i++)System.out.print(numRotForResNonPruned[i]+" ");System.out.println();
 		System.out.println("Total number of rotamers after pruning: "+numTotalRotRedNonPruned+" ");
-		
-		
-		
+		System.out.println("\n\n***** Number of Conformations:  " +numConfNonPrunedMinDEE+" ******\n\n");
+				
 		int indicesEMatrixPos[] = new int[numTotalRotRedNonPruned]; //original (in the non-reduced matrices) indices of non-pruned rot to be included
 		int indicesEMatrixAA[] = new int[numTotalRotRedNonPruned];
 		int indicesEMatrixRot[] = new int[numTotalRotRedNonPruned];
@@ -3904,7 +3920,7 @@ public class RotamerSearch implements Serializable
 				if (outputFile){//Output to file
 					
 					if ((approxMinGMEC)||(minE<=(getBestE()+Ew))){ //heuristic stopping condition or minE within Ew of the current lowest energy
-						
+						String [] mutStrng = getMutantString(treeLevels, strandMut);
 						numConfsOutput++;
 						logPS.print(numConfsOutput+" ");
 						for (int i=0; i<treeLevels; i++){
@@ -4554,5 +4570,60 @@ public class RotamerSearch implements Serializable
 		m.updateCoordinates();
 	}
 	
+	
+	public static int numberWTRots(int strandMut[][],  String[][] strandDefault , int curLevel, 
+			StrandRotamers[] strandRot, int[] mutRes2Strand, int[] mutRes2StrandMutIndex, PrunedRotamers<Boolean> eliminatedRotAtRes){
+		
+		
+		int numWTrots = 0; 
+		int str = mutRes2Strand[curLevel];
+		int strResNum = strandMut[str][mutRes2StrandMutIndex[curLevel]];
+
+		//System.out.println("curLevel "+curLevel);
+
+		for (int curAA=0; curAA<strandRot[str].getNumAllowable(strResNum); curAA++){ //for all allowed AA's
+			int index = strandRot[str].getIndexOfNthAllowable(strResNum,curAA);
+			int newRot = strandRot[str].rl.getNumRotForAAtype(index);
+			String AAname = strandRot[str].rl.getAAName(index);
+			int numPrunedThisAA = 0;
+			if (newRot==0)
+				newRot = 1; // ALA or GLY
+			for (int curRot=0; curRot<newRot; curRot++){ //for all rotamers for the given AA
+				//curIndex = curLevel*numTotalRotamers + rotamerIndexOffset[index]+curRot;
+				if (eliminatedRotAtRes.get(curLevel,index,curRot)){
+
+					numPrunedThisAA++;
+				}
+			}
+			if(AAname.equals(strandDefault[str][mutRes2StrandMutIndex[curLevel]])){
+				numWTrots = newRot - numPrunedThisAA;
+			}
+		}
+			//System.out.println("NumWTRots_dgl: "+numWTrots);
+			
+		return numWTrots;
+	} // end method
+	
+	public void setStrandDefault(String[][] sd ){
+		this.strandDefault_dgl = sd;  
+	}
+
+	public String[ ] getMutantString(int treeLevels,int[][] strandMut){
+		
+		//System.out.println("\n\n::::::::::::::::::::::::::::::::::::::::");
+		String[] stringOut = new String[treeLevels]; 
+		
+		for (int i=0; i<treeLevels; i++){
+			int str = mutRes2Strand[i];
+			int strResNum = strandMut[str][mutRes2StrandMutIndex[i]];
+			int molResNum = m.strand[str].residue[strResNum].moleculeResidueNumber;
+			System.out.print(strandRot[str].rl.getAAName(curAANum[molResNum])+" ");
+			stringOut[i] = strandRot[str].rl.getAAName(curAANum[molResNum]); 
+		}
+		//System.out.println("\n::::::::::::::::::::::::::::::::::::::::\n\n");
+		return stringOut;
+	}
+	
+
 	
 }//end of RotamerSearch class
