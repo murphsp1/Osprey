@@ -87,7 +87,7 @@ import mpi.Status;
  */
 public class KSParser
 {
-		
+   
 		boolean printSegID = false;
 		
 		boolean hElect = true; // should hydrogens be used in electrostatic energy calculations
@@ -100,6 +100,8 @@ public class KSParser
 		String cfgName = "KStar.cfg";
 		
 		ParamSet rParams = null; //the main KStar parameters
+		
+		ParamDefs pDefs = null;  // hashmap of parameter definitions DGL
 	
     // For soft vdw potential
 		double softvdwMultiplier = 1.0;
@@ -280,6 +282,8 @@ public class KSParser
 			handleComputeEnergyMol(s);
 		else if (firstToken.equalsIgnoreCase("KSMaster"))
 			handleKSMaster(s);
+		else if (firstToken.equalsIgnoreCase("KStarSize"))
+			handleKSSize(s);
 		else if (firstToken.equalsIgnoreCase("computeEmats"))
             handleComputeAllPairwiseRotamerEnergies(s);
 		
@@ -481,7 +485,7 @@ public class KSParser
 		}
 		for(int q=0;q<numTokens(tempResAllow);q++)
 			rs.setAllowable(strandMut[molStrand][curPos],getToken(tempResAllow,q+1),molStrand);
-		if (addWT)
+		if (addWT && numTokens(tempResAllow) == 0) //DGL this fix may be worth keeping --if theres already a resallowd dont add WT.
 			rs.setAllowable(strandMut[molStrand][curPos],strandDefault[molStrand][curPos],molStrand); //the default type is set last
 	}
 	
@@ -547,7 +551,7 @@ public class KSParser
 										
 					for(int j=0; j<numInStrand;j++)
 						newMol.addResidue(strNum,myStrand[j],false);
-			
+               
 					newMol.strand[strNum].isProtein = (new Boolean((String)sParams.getValue("STRANDAA"+i))).booleanValue();
 					if (newMol.strand[strNum].isProtein) //use the AA rotamer library for the ligand
 						grl[strNum] = EnvironmentVars.aaRotLib;
@@ -830,6 +834,126 @@ public class KSParser
 	}
 
 	/**
+	 * estimateProblemSize -- just do DEE pruning and count number of Conformations. DGL 
+	*/
+	public void handleKSSize(String s) {
+	
+		// Takes the following parameters
+		// 1: System parameter filename (string)
+		// 2: Mutation search parameter filename (string)
+		
+		ParamSet sParams = new ParamSet();
+		sParams.addParamsFromFile(getToken(s,2)); //read system parameters
+		sParams.addParamsFromFile(getToken(s,3)); //read mutation search parameters
+		
+		
+		//int numInAS = (new Integer((String)sParams.getValue("NUMINAS"))).intValue();
+		int numMutations = (new Integer((String)sParams.getValue("NUMMUTATIONS"))).intValue();
+		String runName = (String)sParams.getValue("RUNNAME");
+		String mutFileName = (String)sParams.getValue("MUTFILENAME",runName+".mut");
+		String eMatrixNameMin = (String)sParams.getValue("MINENERGYMATRIXNAME",runName+"minM");
+		String eMatrixNameMax = (String)sParams.getValue("MAXENERGYMATRIXNAME",runName+"maxM");
+		boolean doMinimize = (new Boolean((String)sParams.getValue("DOMINIMIZE","false"))).booleanValue();
+		boolean minimizeBB = (new Boolean((String)sParams.getValue("MINIMIZEBB","false"))).booleanValue();
+		boolean doBackrubs = (new Boolean((String)sParams.getValue("DOBACKRUBS","false"))).booleanValue();
+		String backrubFile = "";
+		if(doBackrubs){
+			backrubFile = (String)sParams.getValue("BACKRUBFILE");
+		}
+		boolean repeatSearch = (new Boolean((String)sParams.getValue("REPEATSEARCH","true"))).booleanValue();
+		boolean scaleInt = (new Boolean((String)sParams.getValue("SCALEINT","false"))).booleanValue();
+		float maxIntScale =0.0f;
+		if(scaleInt){
+			maxIntScale = (new Float((String)sParams.getValue("MAXINTSCALE"))).floatValue();
+		}
+		float initEw = (new Float((String)sParams.getValue("INITEW","6.0"))).floatValue();
+		float pruningE = (new Float((String)sParams.getValue("PRUNINGE","100.0"))).floatValue();
+		double stericE = (new Double((String)sParams.getValue("STERICE","100.0"))).doubleValue();
+		float targetVol = (new Float((String)sParams.getValue("TARGETVOLUME","0.0"))).floatValue();
+		float volWindow = (new Float((String)sParams.getValue("VOLUMEWINDOW","50000000"))).floatValue();
+		boolean resumeSearch = (new Boolean((String)sParams.getValue("RESUMESEARCH","false"))).booleanValue();
+		String resumeFilename = "";
+		if(resumeSearch){
+			resumeFilename = (String)sParams.getValue("RESUMEFILENAME");
+		}
+		double gamma = (new Double((String)sParams.getValue("GAMMA", "0"))).doubleValue();
+		float epsilon = (new Float((String)sParams.getValue("EPSILON","0.3"))).floatValue();
+		boolean addOrigRots = (new Boolean((String)sParams.getValue("ADDWTROTS","false"))).booleanValue();
+		
+		boolean saveTopConfs = (new Boolean((String)sParams.getValue("SAVETOPCONFSASPDB","false"))).booleanValue();
+		boolean printTopConfs = (new Boolean((String)sParams.getValue("SAVETOPCONFSROTS","false"))).booleanValue();
+		int numTopConfs = (new Integer((String)sParams.getValue("NUMTOPCONFSTOSAVE","0"))).intValue();
+		
+		if(printTopConfs || saveTopConfs){
+			//KER: make directory for the confs to be printed to.
+			File ksConfDir = new File(EnvironmentVars.ksConfDir);
+			if(!ksConfDir.exists())
+				ksConfDir.mkdir();
+		}
+		
+		/*KER: Set environment variables*/
+		boolean useMaxKSconfs = new Boolean((String)sParams.getValue("useMaxKSconfs","false")).booleanValue();
+		BigInteger maxKSconfs = BigInteger.ZERO;
+		if(useMaxKSconfs)
+			maxKSconfs = new BigInteger(sParams.getValue("maxKSconfs"));
+		
+		
+		System.out.println("Run Name: "+runName);
+		System.out.println("Precomputed Min Energy Matrix: "+eMatrixNameMin);
+		System.out.println("Precomputed Max Energy Matrix: "+eMatrixNameMax);
+		//System.out.println("Ligand Type: "+ligType);
+		System.out.println("Volume Center: "+targetVol);
+		System.out.println("Volume Window Size: "+volWindow);
+		System.out.println("Num Residues Allowed to Mutate: "+numMutations);
+		
+		
+		MolParameters mp = loadMolecule(sParams, COMPLEX);
+		//KER: This is a placeholder so I don't have to change all the variables in the code
+		Molecule m = mp.m;
+		int numberMutable = mp.numberMutable;
+		int strandsPresent = mp.strandsPresent;
+		String[][] strandLimits = mp.strandLimits;
+		boolean[] strandPresent = mp.strandPresent;
+		int[][] strandMut = mp.strandMut;
+		String[][] strandDefault = mp.strandDefault;
+		
+		if(addOrigRots)
+			RotamerLibrary.addOrigRots(strandMut, EnvironmentVars.aaRotLib, m);
+		
+		// Create the mutation list with estimated energies
+		Set<OneMutation> mutSet = new TreeSet<OneMutation>();
+				
+
+		// Generate all combinations (include (n choose m), (n choose m-1), ... , (n choose 1), and (n choose 0) )
+		int numCombAll = 0;
+		if(numMutations > mp.numberMutable)
+			numMutations = mp.numberMutable;
+		for (int i=numMutations; i>=0; i--)
+			numCombAll += factorial(mp.numberMutable).divide(factorial(mp.numberMutable-i).multiply(factorial(i))).intValue();
+		int residueMutatableAll[][] = new int[numCombAll][mp.numberMutable];
+		int curInd = 0;
+		for (int i=numMutations; i>=0; i--){
+			int numCombCur = factorial(mp.numberMutable).divide(factorial(mp.numberMutable-i).multiply(factorial(i))).intValue();
+			//System.out.println("numCombCur: " + numCombCur);
+			int residueMutatableCur[][] = new int[numCombCur][mp.numberMutable];
+			generateCombinations(residueMutatableCur,mp.numberMutable,i);
+			for (int j=0; j<numCombCur; j++){
+				residueMutatableAll[curInd] = residueMutatableCur[j];
+				curInd++;
+			}
+		}
+		
+		RotamerSearch rs = new RotamerSearch(m,numberMutable, strandsPresent,hElect,hVDW,hSteric,true,true,epsilon,stericThresh,softStericThresh,distDepDielect,dielectConst,doDihedE,doSolvationE,solvScale,softvdwMultiplier,grl);
+		
+		mutSet = handleHybridKSLoadMutList(mutFileName, numberMutable, m, numCombAll, residueMutatableAll,
+				sParams, strandMut, strandDefault, rs.strandRot, targetVol, volWindow,strandsPresent,strandPresent);
+		
+		System.out.println("Number of mutants: "+ numCombAll); 
+		
+	}
+	
+
+	/**
 	 * Performs K* redesign; sets up the K* computation from the input model and configuration files and distributes the
 	 * candidate mutants for evaluation by the set of available processors.
 	*/
@@ -952,7 +1076,9 @@ public class KSParser
 		//  that that residues can mutate
 
 		
-		
+		//ParamDefs pDefs = new ParamDefs();
+		//pDefs.dump();
+		//sParams.dumpParameters();
 		
 		System.out.print("Checking if precomputed energy matrix is already computed...");
 		RotamerSearch rs = new RotamerSearch(m,numberMutable, strandsPresent,hElect,hVDW,hSteric,true,true,epsilon,stericThresh,softStericThresh,distDepDielect,dielectConst,doDihedE,doSolvationE,solvScale,softvdwMultiplier,grl);
@@ -994,8 +1120,8 @@ public class KSParser
 
 		rs = null;
 		System.out.println("done");
-		
 		m = setupMolSystem(m,sParams,strandPresent,strandLimits);
+      //System.out.println(m.toString()); //DGL
 		rs = new RotamerSearch(m,numberMutable, strandsPresent,hElect,hVDW,hSteric,true,true,epsilon,stericThresh,softStericThresh,distDepDielect,dielectConst,doDihedE,doSolvationE,solvScale,softvdwMultiplier,grl);
 		
 		//Compute the matrices for all strands (-1 is for the complex)
@@ -1052,7 +1178,7 @@ public class KSParser
                 System.exit(0);
             }
 		}
-	}
+	} // end if resumeSearch
 		OneMutation[] mutArray = mutSet.toArray(new OneMutation[1]);
 		//BigDecimal q_L = getLigPartFn(m,numInAS,ligType,eMatrixNameMin+".dat");
 	
@@ -1258,6 +1384,125 @@ public class KSParser
 	}
 
 
+	
+	public void createMutList(String mutFileName, int numMutable,
+			Molecule m, int numComb, int residueMutatable[][], ParamSet sParams,int strandMut[][], String strandDefault[][],
+			StrandRotamers[] strandRot, float targetVol,float volWindow,int strandsPresent, boolean strandPresent[]){
+		
+		// Look for previous mutation file
+		System.out.println();
+		System.out.print("Looking for mutation list file ");
+		Set<OneMutation> mutSet = loadMutationList(mutFileName,numMutable,false);
+
+		if (mutSet == null) {
+			
+			// Create the mutation list with estimated energies
+			mutSet = new TreeSet<OneMutation>();
+			RotamerSearch rs = new RotamerSearch(m, numMutable, strandsPresent, hElect, hVDW, hSteric, true,
+					true, 0.0f, stericThresh, softStericThresh, distDepDielect, dielectConst,doDihedE,doSolvationE,solvScale,softvdwMultiplier,grl);
+
+			//KER: load vol file for each rotamer library
+			for (int strNum=0; strNum<rs.strandRot.length; strNum++){
+				//KER: Only load volfile if residue is allowed to mutate
+				//if(rs.strandRot[strNum].rl.getNumAAallowed() > 1)
+					rs.strandRot[strNum].rl.loadVolFile(); //load the rotamer volume file
+				
+			}
+			
+			int curNumSeq = 0;
+			boolean valid;
+			for(int i=0; i<numComb; i++) {
+				valid = true;
+				// Reset each amino acid type
+				System.out.print("Starting mutation combination " + i + " ... ");
+				for(int str=0;str<strandMut.length;str++)
+					rs.refreshStrand(str); // clears allowables and does some other stuff
+
+				boolean addWT = (new Boolean((String)sParams.getValue("ADDWT", "true"))).booleanValue();
+				if(!addWT)
+					checkWT(strandDefault, strandPresent, sParams);
+				int molStrand = 0;
+				int mutIndex = 0;
+				for (int strNum=0; strNum<strandPresent.length; strNum++){
+					if(strandPresent[strNum]){
+						for (int k=0; k<strandMut[molStrand].length; k++){ 
+							if (residueMutatable[i][mutIndex] == 1)
+								setAllowablesHelper(rs, sParams, addWT, strNum, molStrand, k, strandMut, strandDefault);
+							else{
+								valid = false;
+								String tempResAllow = (String)sParams.getValue("RESALLOWED"+strNum+"_"+k,"");
+								if(numTokens(tempResAllow) <= 0 && !addWT){
+									System.out.println("Error: resAllowed not set for strand");
+									System.exit(1);
+								}
+								for(int q=0;q<numTokens(tempResAllow);q++){
+									if(getToken(tempResAllow,q+1).equalsIgnoreCase(strandDefault[molStrand][k])){
+										rs.setAllowable(strandMut[molStrand][k],strandDefault[molStrand][k],molStrand); //the default type is set last
+										valid = true;
+									}
+								}
+								if(addWT){
+									rs.setAllowable(strandMut[molStrand][k],strandDefault[molStrand][k],molStrand); //the default type is set last
+									valid = true;
+								}								
+							}
+							mutIndex++;
+						}
+						molStrand++;
+					}
+				}
+				
+				// Perform simple mutation search for this set of mutatable residues
+				if(valid){
+					curNumSeq = rs.simpleMasterMutationSearch(strandMut,numMutable,
+						curNumSeq,mutSet,targetVol-volWindow,
+						targetVol+volWindow);
+				}
+				System.out.println("finished");
+			}
+			
+			System.out.println("Sequences remaining after volume filter "+curNumSeq);
+			
+			// We now have all the mutations in mutArray, collapse the mutArray
+			//  to the actual number of mutations we have.
+			
+			//KER: mutArray is now a set so we don't need to reallocate a smaller array
+			//OneMutation newArray[] = new OneMutation[curNumSeq];
+			//System.out.println("Allocated newArray");
+			//System.out.println("Initial Length of mutArray: "+mutArray.length);
+			//System.arraycopy(mutArray,0,newArray,0,curNumSeq);
+			//mutArray = newArray;
+			System.out.println("Trimmed Length of mutArray: "+mutSet.size());
+			
+			//KER: mutArray is now a set so there should be no duplicates to begin with
+			/*System.out.print("Removing duplicates...");
+			mutArray = removeDuplicates(mutArray);
+			System.out.println("done");*/
+			
+			System.out.println(mutSet.size()+" unique mutation sequences found in volume range "+(targetVol-volWindow)+" to "+(targetVol+volWindow));
+			BigInteger numConfs = BigInteger.ZERO;
+			Iterator<OneMutation> i = mutSet.iterator();
+			while(i.hasNext()){
+				OneMutation tmp = i.next();
+				numConfs = numConfs.add(tmp.numConfUB.add(tmp.numConfB));
+			}
+			System.out.println("Total number of conformations (bound and unbound) for all sequences: "+numConfs);// Save mutation list
+			saveMutationList(mutSet,mutFileName,false);
+		}
+
+	
+		// Sort the mutation list
+		// System.out.print("Sorting mutation list ... ");
+		//KER: mutSet is a TreeSet which is sorted so no need to sort
+		//RyanQuickSort rqs = new RyanQuickSort();
+		//rqs.Sort(mutArray);
+		//rqs = null;
+		// System.out.println("done");
+		
+		//return mutSet;
+	}
+	
+	
 	/**
 	 * Reads the results of a partially completed run into an array of CommucObj. The MutationManager then queries 
 	 * this array before sending out a task.
@@ -1634,6 +1879,7 @@ public class KSParser
 			RotamerSearch rs = new RotamerSearch(m,numberMutable,strandsPresent, hElect, hVDW, hSteric, true,
 					true, cObj.epsilon, cObj.stericThresh, cObj.softStericThresh, cObj.distDepDielect, cObj.dielectConst,cObj.doDihedE,cObj.doSolvationE,cObj.solvScale,cObj.vdwMult,grl);		
 			
+			rs.setStrandDefault(mp.strandDefault); // DGL 
 			System.out.print("Loading precomputed min energy matrix...");
 			rs.loadPairwiseEnergyMatrices(minEmatrixFile,true);
 			System.out.println("done");
@@ -1669,10 +1915,13 @@ public class KSParser
 			//for (int i=0; i<prunedRotAtRes.length; i++)
 			//	prunedRotAtRes[i] = false;
 			
+			countPrunedRotamers(prunedRotAtRes); 
 			
 			//Prune all rotamers that are incompatible with the template (intra E + re-to-template E >= stericE)
-			prunedRotAtRes = rs.DoPruneStericTemplate(numberMutable, strandMut, prunedRotAtRes, cObj.stericE);			
-		
+			//prunedRotAtRes = rs.DoPruneStericTemplate(numberMutable, strandMut, prunedRotAtRes, cObj.stericE);			
+
+			countPrunedRotamers(prunedRotAtRes); 
+
 			//Perform the DEE pruning
 			if (cObj.doMinimization) //compute the MinDEE interval terms
 				rs.doCompMinDEEIntervals(numberMutable, strandMut, 
@@ -1682,13 +1931,20 @@ public class KSParser
 			prunedRotAtRes = rs.DoDEEGoldstein(numberMutable, strandMut, cObj.initEw, prunedRotAtRes, 
 					cObj.doMinimization, false,	cObj.minimizeBB, cObj.typeDep, false, 0.0f);
 			
+			countPrunedRotamers(prunedRotAtRes); 
+
+			
 			//Prune with MinBounds (last parameter is false)
 			prunedRotAtRes = rs.DoMinBounds(numberMutable,strandMut,
 					cObj.pruningE,prunedRotAtRes,cObj.initEw, false, false);
 			
+			countPrunedRotamers(prunedRotAtRes); 
+
 			//Compute the Ec value and prunedIsSteric[] (last parameter is true)
 			rs.DoMinBounds(numberMutable,strandMut,cObj.pruningE,prunedRotAtRes,cObj.initEw, false, true);
 		
+			countPrunedRotamers(prunedRotAtRes); 
+
 			
 			//TODO: Fix usingInitialBest and setting initialBest
 			boolean usingInitialBest = (!notFullComplex);
@@ -1735,10 +1991,15 @@ public class KSParser
 										int strandPresent){
 		//StrandNumbers are appended to PEM matrix, Complex is denoted with "_COM"
           // PGC
-                String runName = sParams.getValue("RUNNAME");
+        String runName = sParams.getValue("RUNNAME");
 		String suffix = "_" + strandPresent+".dat";
-		if(strandPresent == COMPLEX )
+		if(strandPresent == COMPLEX ) {
 			suffix = "_COM.dat";
+            System.out.println("----------COMPUTING ENERGY MATRIX FOR COMPLEX------------");
+      }else {
+            System.out.println("----------COMPUTING ENERGY MATRIX FOR STRAND " + strandPresent);
+      }
+
 		rs.loadPairwiseEnergyMatrices(minMatrixFile + suffix,true);
 		if (doMinimize)
 			rs.loadPairwiseEnergyMatrices(maxMatrixFile + suffix,false);
@@ -1837,7 +2098,7 @@ public class KSParser
 	 */
 	public void handleComputeAllPairwiseRotamerEnergiesMaster(ParamSet sParams) {	
 		
-		int numMutations = 2; //pairwise energies are computed
+		int numMutations = 2; //pairwise energies are computed ** bug ? DGL **
 		boolean doMinimize = (new Boolean((String)sParams.getValue("DOMINIMIZE", "false"))).booleanValue();
 		boolean minimizeBB = (new Boolean((String)sParams.getValue("MINIMIZEBB", "false"))).booleanValue();
 		boolean doBackrubs = (new Boolean((String)sParams.getValue("DOBACKRUBS", "false"))).booleanValue();
@@ -2575,10 +2836,48 @@ public class KSParser
 			doDACS = false;
 			
 		//Setup the molecule system
+		
 		MolParameters mp = loadMolecule(sParams,curStrForMatrix);
 		
-		if(addOrigRots)
+		if(addOrigRots){
 			RotamerLibrary.addOrigRots(mp.strandMut, EnvironmentVars.aaRotLib, mp.m);
+         }
+		
+		// DGL 
+		// Added code to generate mutation list. The following paramters are needed. 
+		/*float targetVol = (new Float((String)sParams.getValue("TARGETVOLUME","0.0"))).floatValue();
+		float volWindow = (new Float((String)sParams.getValue("VOLUMEWINDOW","50000000"))).floatValue();
+		String mutFileName = (String)sParams.getValue("MUTFILENAME",runName+".mut");
+		int numMutationsDGL = (new Integer((String)sParams.getValue("NUMMAXMUT"))).intValue();
+		
+		// Generate all combinations (include (n choose m), (n choose m-1), ... , (n choose 1), and (n choose 0) )
+		int numCombAll = 0;
+		if(numMutationsDGL > mp.numberMutable)
+			numMutationsDGL = mp.numberMutable;
+		for (int i=numMutationsDGL; i>=0; i--)
+			numCombAll += factorial(mp.numberMutable).divide(factorial(mp.numberMutable-i).multiply(factorial(i))).intValue();
+		int residueMutatableAll[][] = new int[numCombAll][mp.numberMutable];
+		int curInd = 0;
+		for (int i=numMutationsDGL; i>=0; i--){
+			int numCombCur = factorial(mp.numberMutable).divide(factorial(mp.numberMutable-i).multiply(factorial(i))).intValue();
+			int residueMutatableCur[][] = new int[numCombCur][mp.numberMutable];
+			generateCombinations(residueMutatableCur,mp.numberMutable,i);
+			for (int j=0; j<numCombCur; j++){
+				residueMutatableAll[curInd] = residueMutatableCur[j];
+				curInd++;
+			}
+		}
+		
+
+		RotamerSearch rs_dum = new RotamerSearch(mp.m,mp.numberMutable, mp.strandsPresent, hElect, hVDW, hSteric, true,
+				true, 0.0f, stericThresh, softStericThresh, distDepDielect, dielectConst, doDihedE, doSolvationE, solvScale, softvdwMultiplier, grl);
+		// now generate and save all mutations in a file. DGL 
+	   System.out.println("Saving Mutation List"); 
+	   createMutList(mutFileName, mp.numberMutable,
+				mp.m, numCombAll, residueMutatableAll, sParams, mp.strandMut, mp.strandDefault,
+				rs_dum.strandRot,  targetVol, volWindow, mp.numOfStrands, mp.strandPresent);
+	*/ 
+		
 		
 		// 2010: If useMinDEEPruningEw is set to false, this cycle never repeats itself.
 		//  If it is set to true, it can repeat at most once: if none of the rotamer vectors
@@ -2592,7 +2891,8 @@ public class KSParser
 					true, 0.0f, stericThresh, softStericThresh, distDepDielect, dielectConst, doDihedE, doSolvationE, solvScale, softvdwMultiplier, grl);
 			
 			rs.initMutRes2Str(mp.strandMut);
-	
+			rs.setStrandDefault(mp.strandDefault); 
+			
 			System.out.print("Loading precomputed energy matrix...");
 			loadPairwiseEnergyMatrices(sParams,rs,runNameEMatrixMin,doMinimize,runNameEMatrixMax,curStrForMatrix);
 			System.out.println("done");
@@ -2700,11 +3000,11 @@ public class KSParser
 					System.out.println();
 				}
 				
-				System.out.println("Starting pruning with DEE (1-sp split-DEE)");			
+/*				System.out.println("Starting pruning with DEE (1-sp split-DEE)");			
 				prunedRotAtRes = rs.DoDEEConfSplitting(mp.numberMutable, mp.strandMut,
 						initEw, prunedRotAtRes, null, doMinimize, useFlags, 1, false, minimizeBB, 
 						typeDep,localUseMinDEEPruningEw,Ival);
-				System.out.println();
+				System.out.println();*/
 				
 				System.out.println("Starting pruning with Bounds");			
 				prunedRotAtRes = rs.DoMinBounds(mp.numberMutable, mp.strandMut,
@@ -2820,6 +3120,8 @@ public class KSParser
 							mp.numberMutable,mp.strandMut,mp.strandDefault,numMaxMut,initEw,
 							bestScore,null,approxMinGMEC,lambda,minimizeBB,useEref,eRef,doBackrubs,backrubFile,
 							localUseMinDEEPruningEw, Ival);
+							
+					
 	  				
 	  				difference = interval - Ival;
 	  				Ival = interval;
@@ -6270,6 +6572,21 @@ public class KSParser
 // End Backrub Precomputation Section
 //////////////////////////////////////////////////////
 	
+	void countPrunedRotamers(PrunedRotamers prunedRotAtRes){
+		// DGL 
+		int pr_len=0;
+		int num_rot=0;
+		Iterator<RotInfo<Boolean>> iter = prunedRotAtRes.iterator();
+		while(iter.hasNext()){
+			num_rot++;
+			RotInfo<Boolean> ri=iter.next();
+			if(ri.getState())
+				pr_len++;
+		}
+		
+		System.out.println("****Total num rotamers:  " + num_rot + " Num pruned:  " + pr_len + "  ********************");
+	}
+	
 	int[] getCurrentMutOffset(int[][] origStrandMut, int[][] currStrandMut, boolean[] strandPresent, boolean[] oldStrandPresent){
 		int offsetMat[] = new int[origStrandMut.length];
 		int strCtr=0;
@@ -6356,6 +6673,6 @@ private int[] rotamersRemaining(int numRotForRes[], PrunedRotamers<Boolean> prun
 		return numNotPrunedForRes;
 		
 	}
-	
+
 	
 } // end of KSParser class
