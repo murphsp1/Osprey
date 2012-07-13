@@ -21,38 +21,32 @@
 #
 #########################################################
 
-display_help ()
-{
+function display_help {
 	echo "This is the help"
 }
 
-handle_error ()
-{
+function handle_error {
 	echo "Osprey Error: $1"
 	exit
 }
 
-make_osprey ()
-{
+function make_osprey {
 	cd src
 	javac *.java
 	cd ..
 }
 
-clean_osprey ()
-{
+function clean_osprey {
 	cd src
 	rm *.class
 	cd ..
 }
 
-run_osprey ()
-{
+function run_osprey {
 	mpirun -np 80 java -Xmx1024M KStar mpi -c KStar.cfg KSMaster System.cfg MutSearch.cfg > test.out
 }
 
-update_config ()
-{
+function update_config {
 	if [ -z "$1" ]
 	then
 		handle_error "No config name"
@@ -75,8 +69,7 @@ update_config ()
 	return 0
 }
 
-update_osprey ()
-{
+function update_osprey {
 	if [ -z "$1" ]
 	then
 		git pull
@@ -92,6 +85,7 @@ update_osprey ()
 	make_osprey
 }
 
+# main command dispatcher
 case "$1" in
 	make)
 		echo " Building Osprey"
