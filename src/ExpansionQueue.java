@@ -1,3 +1,4 @@
+import java.nio.BufferOverflowException;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /*
@@ -66,6 +67,9 @@ Bruce Donald, Professor of Computer Science
  * 		only the visible nodes are contained in the queue.
  */
 public class ExpansionQueue {
+	
+	// 5,000,000 per GB (probably more)
+	static private int sizeLimit = 20000000;
 	
 	 private PriorityBlockingQueue<QueueNode> thequeue;
 	
@@ -168,6 +172,9 @@ public class ExpansionQueue {
 	}*/
 	
 	 public void insert(QueueNode newNode){
+		 if (thequeue.size() > ExpansionQueue.sizeLimit) {
+			 throw new BufferOverflowException();
+		 }
          thequeue.add(newNode);
          curFront = thequeue.peek();
 	 }

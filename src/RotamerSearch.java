@@ -2632,6 +2632,12 @@ public class RotamerSearch implements Serializable
 				numConfsPrunedByS = stericF.getNumConfsPrunedByS();
 			}
 			
+			// drop out if we run out of queue slots
+			if (curConf[0] == -2) {
+				curConf[0] = -1;
+				return;
+			}
+			
 			for (int curRotCheck=0; curRotCheck<treeLevels; curRotCheck++){//check if the conformation is valid
 				if (curConf[curRotCheck]==-1){ // no valid conformations remaining
 					if (partial_q.multiply(new BigDecimal(ro)).compareTo(pStar)<0){ //approximation accuracy not achieved

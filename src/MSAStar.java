@@ -1,3 +1,5 @@
+import java.nio.BufferOverflowException;
+
 /*
 	This file is part of OSPREY.
 
@@ -201,7 +203,14 @@ public class MSAStar {
 					newNode = new QueueNode (curNode, 0, curConf, fScore);
 					
 					//insert in the expansion list
+					try {
 					curExpansion.insert(newNode);
+					} catch (BufferOverflowException e) {
+						for (int i=0; i<numTreeLevels; i++) {
+							curConf[i] = -1;
+						}
+						return curConf;
+					}
 				//}
 			}
 			if (curConf[0]==-1) //no sterically allowed nodes at the first residue, so no possible conformations				
@@ -293,7 +302,16 @@ public class MSAStar {
 								newNode = new QueueNode (curNode, curLevelNum, curConf, fScore);
 								
 								//insert in the expansion list
-								curExpansion.insert(newNode);
+								try {
+									curExpansion.insert(newNode);
+								} catch (BufferOverflowException e) {
+									for (int i=0; i<numTreeLevels; i++) {
+										curConf[i] = -1;
+									}
+									// ugly hack to indicate that we ran out of space and do not want to retry
+									curConf[0] = -2;
+									return curConf;
+								}
 							//}
 						}
 					}
