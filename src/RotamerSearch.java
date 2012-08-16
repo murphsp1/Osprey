@@ -105,6 +105,8 @@ import java.math.*;
 public class RotamerSearch implements Serializable
 {
 
+	protected boolean aStarFailure = false;
+	
 	// If the debug flag is set to true then additional debug statements are
 	//  printed to standard out.
 	public static final boolean debug = true;
@@ -2339,6 +2341,10 @@ public class RotamerSearch implements Serializable
 				cObj.q[runNum] = partial_q;
 				cObj.bestE[runNum] = (double)bestEUnMin;
 				cObj.bestEMin[runNum] = (double)getBestE();
+				
+				if (aStarFailure == true) {
+					cObj.oomFailure = true;
+				}
 				//}
 		}
 		else {
@@ -2635,6 +2641,7 @@ public class RotamerSearch implements Serializable
 			// drop out if we run out of queue slots
 			if (curConf[0] == -2) {
 				curConf[0] = -1;
+				aStarFailure = true;
 				return;
 			}
 			

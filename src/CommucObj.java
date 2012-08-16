@@ -90,6 +90,8 @@ public class CommucObj implements Serializable
 		}
 	}
 	
+	protected boolean oomFailure = false;
+	
 	ConfInfo confSeq[] = null;
 	/*int E_searchNumConfsTotal = 0;
 	int E_searchNumConfsPrunedByE = 0;

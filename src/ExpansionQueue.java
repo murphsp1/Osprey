@@ -70,6 +70,7 @@ public class ExpansionQueue {
 	
 	// 5,000,000 per GB (probably more)
 	static private int sizeLimit = 20000000;
+	//static private int sizeLimit = 600000;
 	
 	 private PriorityBlockingQueue<QueueNode> thequeue;
 	
