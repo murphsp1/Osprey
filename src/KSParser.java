@@ -4376,11 +4376,21 @@ public class KSParser
 			}
 			
 			if (MPItoThread.getStatusTag(s)==regTag){ //completed job
-				mutMan.processFinishedMutation(cObj[0]);
+				if (cObj[0].oomFailure == false) {
+					mutMan.processFinishedMutation(cObj[0]);
+				}
 				numFinished++;
 				
 				System.out.println("Finished: "+cObj[0].mutationNumber+", Time: "+(cObj[0].elapsedTime/60.0));
 				
+				if (cObj[0].oomFailure == true) {
+					System.out.print("## OOM error for: " + cObj[0].curMut + " Sequence: ");
+					for (int i=0; i<cObj[0].mutableSpots; i++) {
+						System.out.print(" " + cObj[0].currentMutation[i]);
+					}
+					System.out.println(" &&");
+				}
+
 				if (curMut<cObjArray.length){
 					
 					System.out.print("Retrieving "+curMut+" of "+(cObjArray.length));
