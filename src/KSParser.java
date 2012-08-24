@@ -3039,6 +3039,8 @@ public class KSParser {
 	    loadPairwiseEnergyMatrices(sParams, rs, runNameEMatrixMin,
 		    doMinimize, runNameEMatrixMax, curStrForMatrix);
 	    System.out.println("done");
+	    
+	    
 
 	    // ///////////////////////////////////////////////////////////
 	    // DEE section
@@ -3072,7 +3074,7 @@ public class KSParser {
 	    }
 	    if (EnvironmentVars.useEntropy)
 		rs.addEntropyTerm(doMinimize, mp.strandMut);
-
+	    
 	    PrunedRotamers<Boolean> prunedRotAtRes = new PrunedRotamers<Boolean>(
 		    mp.numberMutable, mp.strandMut, rs, false);
 
