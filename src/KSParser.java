@@ -3096,18 +3096,16 @@ public class KSParser {
 	    for (int q : numRotForRes) {
 		System.out.print(q + " ");
 	    }
-	    ;
 	    System.out.println("");
 
 	    // first prune all rotamers that are incompatible with the template
 	    // (intra E + re-to-template E >= stericE)
 	    System.out.println();
-	    System.out
-		    .println("Pruning all rotamers incompatible with the template..");
+	    System.out.println("Pruning all rotamers incompatible with the template..");
 	    prunedRotAtRes = rs.DoPruneStericTemplate(mp.numberMutable,
 		    mp.strandMut, prunedRotAtRes, stericE);
 	    System.out.println();
-
+	    
 	    int[] unprunedRotForRes = rotamersRemaining(numRotForRes,
 		    prunedRotAtRes);
 	    for (int q : unprunedRotForRes) {
