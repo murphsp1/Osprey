@@ -3099,7 +3099,7 @@ public class KSParser {
 		System.out.print(q + " ");
 	    }
 	    System.out.println("");
-
+	    
 	    // first prune all rotamers that are incompatible with the template
 	    // (intra E + re-to-template E >= stericE)
 	    System.out.println();
