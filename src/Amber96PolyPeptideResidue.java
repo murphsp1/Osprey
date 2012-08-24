@@ -3,21 +3,21 @@
 
 	OSPREY Protein Redesign Software Version 2.0
 	Copyright (C) 2001-2012 Bruce Donald Lab, Duke University
-	
+
 	OSPREY is free software: you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as 
 	published by the Free Software Foundation, either version 3 of 
 	the License, or (at your option) any later version.
-	
+
 	OSPREY is distributed in the hope that it will be useful,
 	but WITHOUT ANY WARRANTY; without even the implied warranty of
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 	GNU Lesser General Public License for more details.
-	
+
 	You should have received a copy of the GNU Lesser General Public
 	License along with this library; if not, see:
 	      <http://www.gnu.org/licenses/>.
-		
+
 	There are additional restrictions imposed on the use and distribution
 	of this open-source code, including: (A) this header must be included
 	in any modification or extension of the code; (B) you are required to
@@ -25,7 +25,7 @@
 	for the various different modules of our software, together with a
 	complete list of requirements and restrictions are found in the
 	document license.pdf enclosed with this distribution.
-	
+
 	Contact Info:
 			Bruce Donald
 			Duke University
@@ -35,10 +35,10 @@
 			NC 27708-0129 
 			USA
 			e-mail:   www.cs.duke.edu/brd/
-	
+
 	<signature of Bruce Donald>, Mar 1, 2012
 	Bruce Donald, Professor of Computer Science
-*/
+ */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Amber96PolyPeptideResidue.java
@@ -85,51 +85,51 @@ import java.awt.*;
  * used when performing residue mutations.
  */
 public class Amber96PolyPeptideResidue {
-	
-	AminoAcidTemplates aat = null;
-	Residue residue;
 
-	public Amber96PolyPeptideResidue() {
-		
-		loadAminoAcidTemplates();
-		
-		
-	}
-	
-	private void loadAminoAcidTemplates() {
-		if(aat == null){
-			try{
-				aat = new AminoAcidTemplates(); }
-			catch (Exception E){
-				System.out.println("Problem Loading Amino Acid Templates");
-			}
-		}
-		
+    AminoAcidTemplates aat = null;
+    Residue residue;
+
+    public Amber96PolyPeptideResidue() {
+
+	loadAminoAcidTemplates();
+
+
+    }
+
+    private void loadAminoAcidTemplates() {
+	if(aat == null){
+	    try{
+		aat = new AminoAcidTemplates(); }
+	    catch (Exception E){
+		System.out.println("Problem Loading Amino Acid Templates");
+	    }
 	}
 
-	Residue getResidue( String residueName ){
-		
-		int numAtoms = 0;
-		int aaResIndex = -1;
-		for(int i=0; i<aat.numAAs;i++){
-			if(aat.aaResidues[i].name.equalsIgnoreCase(residueName)){
-					numAtoms = aat.aaResidues[i].numberOfAtoms;
-					aaResIndex = i;
-					break;
-			}
-		}
-		
-		createResidue(residueName, numAtoms);
-		//KER: Need to make sure that when we copy the residue we are
-		//doing a deep copy and not a shallow copy
-		for(int i=0; i<numAtoms; i++){
-			residue.atom[i] = aat.aaResidues[aaResIndex].atom[i].copy();
-		}
-		
-		
-		// RHL: If only a three character residue name is given, assume
-		//  we want the L form
-		/*if (residueName.length() == 3) {
+    }
+
+    Residue getResidue( String residueName ){
+
+	int numAtoms = 0;
+	int aaResIndex = -1;
+	for(int i=0; i<aat.numAAs;i++){
+	    if(aat.aaResidues[i].name.equalsIgnoreCase(residueName)){
+		numAtoms = aat.aaResidues[i].numberOfAtoms;
+		aaResIndex = i;
+		break;
+	    }
+	}
+
+	createResidue(residueName, numAtoms);
+	//KER: Need to make sure that when we copy the residue we are
+	//doing a deep copy and not a shallow copy
+	for(int i=0; i<numAtoms; i++){
+	    residue.atom[i] = aat.aaResidues[aaResIndex].atom[i].copy();
+	}
+
+
+	// RHL: If only a three character residue name is given, assume
+	//  we want the L form
+	/*if (residueName.length() == 3) {
 			String tmp = new String("L");
 			residueName = tmp.concat(residueName);
 		}
@@ -1454,38 +1454,38 @@ public class Amber96PolyPeptideResidue {
 			residue.atom[ 12 ].addBond( 13, 14, 15 );
 		}*/
 
-		// Make the bonds bidirectional
-		completeBonds();
-		for(int i=0; i<residue.numberOfAtoms; i++){
-			residue.atom[i].residueAtomNumber = i;
-		}
-		return(residue);
+	// Make the bonds bidirectional
+	completeBonds();
+	for(int i=0; i<residue.numberOfAtoms; i++){
+	    residue.atom[i].residueAtomNumber = i;
 	}
+	return(residue);
+    }
 
-	public void createResidue( String residueName, int numberOfResidueAtoms ){
-		residue = new Residue();
-		residue.name = residueName;
-		residue.numberOfAtoms = numberOfResidueAtoms;
-		residue.atom = new Atom[ numberOfResidueAtoms ];
-	}
+    public void createResidue( String residueName, int numberOfResidueAtoms ){
+	residue = new Residue();
+	residue.name = residueName;
+	residue.numberOfAtoms = numberOfResidueAtoms;
+	residue.atom = new Atom[ numberOfResidueAtoms ];
+    }
 
-	public void addBackboneBonds(){
-		residue.atom[ 0 ].addBond( 1, 2 );
-		residue.atom[ 2 ].addBond( 3, 4 );
+    public void addBackboneBonds(){
+	residue.atom[ 0 ].addBond( 1, 2 );
+	residue.atom[ 2 ].addBond( 3, 4 );
+    }
+
+    // Complete bonds created by amino acid template. Bonds
+    //  that are only unidirectional are made bidirectional
+    // Important for using Amber96PolyPeptideResiude
+    public void completeBonds() {
+	for(int i=0;i<residue.numberOfAtoms;i++) {
+	    for(int j=0;j<residue.atom[i].numberOfBonds;j++) {
+		if (!(residue.atom[residue.atom[i].bond[j]].bondedTo(i)))
+		    residue.atom[residue.atom[i].bond[j]].addBond(i);
+	    }
 	}
-	
-	// Complete bonds created by amino acid template. Bonds
-	//  that are only unidirectional are made bidirectional
-	// Important for using Amber96PolyPeptideResiude
-	public void completeBonds() {
-		for(int i=0;i<residue.numberOfAtoms;i++) {
-			for(int j=0;j<residue.atom[i].numberOfBonds;j++) {
-				if (!(residue.atom[residue.atom[i].bond[j]].bondedTo(i)))
-					residue.atom[residue.atom[i].bond[j]].addBond(i);
-			}
-		}
-	}
-	
-	
+    }
+
+
 
 }

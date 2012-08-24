@@ -19,7 +19,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, see:
       <http://www.gnu.org/licenses/>.
-	
+
 There are additional restrictions imposed on the use and distribution
 of this open-source code, including: (A) this header must be included
 in any modification or extension of the code; (B) you are required to
@@ -40,7 +40,7 @@ Contact Info:
 
 <signature of Bruce Donald>, Mar 1, 2012
 Bruce Donald, Professor of Computer Science
-*/
+ */
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //	ExpansionQueue.java
@@ -57,43 +57,43 @@ Bruce Donald, Professor of Computer Science
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
-* Written by Ivelin Georgiev (2004-2009)
-* 
-*/
+ * Written by Ivelin Georgiev (2004-2009)
+ * 
+ */
 
 /**
  * This queue is ordered in terms of increasing f(n) values of the nodes in the A* expansion tree;
  * 		only the visible nodes are contained in the queue.
  */
 public class ExpansionQueue {
-	
-	 private PriorityBlockingQueue<QueueNode> thequeue;
-	
-	//a pointer to the first node in the expansion list
-	public QueueNode curFront;
-	
-	//number of nodes in the list
-	public int numNodes;
-	
-	//the unique id of each node in the queue
-	public int idNUM;
-	
-	//constructor
-	ExpansionQueue () {
-		curFront = null;
-		numNodes = 0;
-		
-		 thequeue = new PriorityBlockingQueue<QueueNode>(50000);
-		
-	}
-	/*
+
+    private PriorityBlockingQueue<QueueNode> thequeue;
+
+    //a pointer to the first node in the expansion list
+    public QueueNode curFront;
+
+    //number of nodes in the list
+    public int numNodes;
+
+    //the unique id of each node in the queue
+    public int idNUM;
+
+    //constructor
+    ExpansionQueue () {
+	curFront = null;
+	numNodes = 0;
+
+	thequeue = new PriorityBlockingQueue<QueueNode>(50000);
+
+    }
+    /*
 	//inserts a new node into the expansion queue
 	public void insert (QueueNode newNode){
-		
+
 		boolean done;
 		int i;
 		QueueNode curNode = null;
-		
+
 		if (numNodes==0){//first node to be inserted
 			curFront = newNode;
 			numNodes++;
@@ -104,16 +104,16 @@ public class ExpansionQueue {
 			i=0;
 			while ((!done)&&(i<numNodes)){
 				if (curNode.fScore > newNode.fScore){//insert the new node right before curNode
-					
+
 					newNode.nextNode = curNode;
 					newNode.prevNode = curNode.prevNode;
-					
+
 					if (i!=0)//curNode!=curMinNode
 						curNode.prevNode.nextNode = newNode;
 					else //we have a new minimum node
 						curFront = newNode;
 					curNode.prevNode = newNode;					
-					
+
 					numNodes++;
 					done = true;
 				}
@@ -138,11 +138,11 @@ public class ExpansionQueue {
 	//	the last one is sufficient, but it is faster not to check the full length
 	//	of confSoFar[] for each node in the queue)
 	public void delete (QueueNode delNode){
-		
+
 		QueueNode curNode = curFront;
 		int i = 0;
 		boolean done = false;
-		
+
 		while (!done){
 			if(delNode.fScore==curNode.fScore){
 				if((delNode.level==curNode.level)&&(delNode.nodeNum==curNode.nodeNum)){
@@ -153,7 +153,7 @@ public class ExpansionQueue {
 							curNode.prevNode.nextNode = curNode.nextNode;
 						if(i==0)//move the front pointer if we are deleting the min node
 							curFront = curNode.nextNode;
-						
+
 						numNodes--;
 						done = true;
 						break;
@@ -166,31 +166,31 @@ public class ExpansionQueue {
 			}
 		}
 	}*/
-	
-	 public void insert(QueueNode newNode){
-         thequeue.add(newNode);
-         curFront = thequeue.peek();
-	 }
-	 public void delete(QueueNode delNode){
-         thequeue.remove(delNode);
-         curFront = thequeue.peek();
-	 }
-	 public QueueNode getMin(){
-         return thequeue.poll();
+
+    public void insert(QueueNode newNode){
+	thequeue.add(newNode);
+	curFront = thequeue.peek();
+    }
+    public void delete(QueueNode delNode){
+	thequeue.remove(delNode);
+	curFront = thequeue.peek();
+    }
+    public QueueNode getMin(){
+	return thequeue.poll();
+    }
+
+    //Checks if the two given nodes have the same partially assigned conformation
+    private boolean checkConf(QueueNode node1, QueueNode node2){
+
+	if (node1.level!=node2.level) //different level
+	    return false;
+
+	for (int l=0; l<node1.confSoFar.length; l++){
+	    if (node1.confSoFar[l]!=node2.confSoFar[l])
+		return false;
 	}
-	
-	//Checks if the two given nodes have the same partially assigned conformation
-	private boolean checkConf(QueueNode node1, QueueNode node2){
-	
-		if (node1.level!=node2.level) //different level
-			return false;
-		
-		for (int l=0; l<node1.confSoFar.length; l++){
-			if (node1.confSoFar[l]!=node2.confSoFar[l])
-				return false;
-		}
-		
-		//The partially assigned conformations are the same
-		return true;		
-	}
+
+	//The partially assigned conformations are the same
+	return true;		
+    }
 }
