@@ -55,13 +55,10 @@ import java.util.concurrent.BlockingQueue;
 
 import mpi.MPIException;
 
-
-
 public class KSthread implements Runnable {
     KSParser ksp;
     int rank;
     ThreadElement te;
-
 
     public KSthread(KSParser k, int n, ThreadElement t) {
 	// TODO Auto-generated constructor stub
@@ -72,7 +69,7 @@ public class KSthread implements Runnable {
 
     @Override
     public void run() {
-	//Set the threadElement for this run in the hash table
+	// Set the threadElement for this run in the hash table
 	MPItoThread.threadEle.put(Thread.currentThread(), te);
 	// TODO Auto-generated method stub
 	try {
@@ -81,12 +78,12 @@ public class KSthread implements Runnable {
 	} catch (MPIException e) {
 	    // TODO Auto-generated catch block
 	    e.printStackTrace();
-	} catch (InterruptedException e){
+	} catch (InterruptedException e) {
 	    e.printStackTrace();
 	}
     }
 
-    public int getRank(){
+    public int getRank() {
 	return rank;
     }
 

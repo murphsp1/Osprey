@@ -84,21 +84,22 @@ import java.io.InputStreamReader;
 class PDBChemModel {
 
     // Reads a pdb file and creates a molecule object
-    PDBChemModel (Molecule m, InputStream is) throws Exception {
+    PDBChemModel(Molecule m, InputStream is) throws Exception {
 
 	int modelAtomNumber = 0;
 	int residueNumber = 0;
 	int strandNumber = 0;
-	String atomName = "ZZZ", residueName = "ZZZ", strandName = "0"; 
+	String atomName = "ZZZ", residueName = "ZZZ", strandName = "0";
 	String lastResidueName = "ZZZ", fullResidueName = "ZZZZZZZZZ";
 	String elementType = "  ";
 	String curLine = null;
 	String tmpStg = null;
 	int tmpInt;
 	char[] tmpChr = new char[15];
-	float	x = 0f, y = 0f, z = 0f;
-	Atom	newAtom;
-	boolean newStrandPending = true;  // Will add the first strand with the first atom
+	float x = 0f, y = 0f, z = 0f;
+	Atom newAtom;
+	boolean newStrandPending = true; // Will add the first strand with the
+					 // first atom
 	Residue newResidue = null;
 
 	BufferedReader bufread = new BufferedReader(new InputStreamReader(is));
@@ -108,29 +109,33 @@ class PDBChemModel {
 	    bufread.close();
 	}
 
-	while(curLine != null) {
+	while (curLine != null) {
 	    // First pad line to 80 characters
 	    tmpInt = curLine.length();
-	    for (int i=0; i < (80-tmpInt); i++)
+	    for (int i = 0; i < (80 - tmpInt); i++)
 		curLine += " ";
 
-	    if ((curLine.regionMatches(true,0,"ATOM  ",0,6)) || (curLine.regionMatches(true,0,"HETATM",0,6))) {
+	    if ((curLine.regionMatches(true, 0, "ATOM  ", 0, 6))
+		    || (curLine.regionMatches(true, 0, "HETATM", 0, 6))) {
 
 		// Is an ATOM line
-		tmpStg = curLine.substring(6,11);  // Snag atom serial number
+		tmpStg = curLine.substring(6, 11); // Snag atom serial number
 		tmpStg = tmpStg.trim();
 		modelAtomNumber = (new Integer(tmpStg)).intValue();
-		atomName = curLine.substring(12,16);  // Snag atom name
+		atomName = curLine.substring(12, 16); // Snag atom name
 		atomName = atomName.trim();
-		residueName = curLine.substring(17,20);  // Snag short residue name
+		residueName = curLine.substring(17, 20); // Snag short residue
+							 // name
 		residueName = residueName.trim();
-		fullResidueName = curLine.substring(17,26);  // Snag full residue atom name
+		fullResidueName = curLine.substring(17, 26); // Snag full
+							     // residue atom
+							     // name
 		fullResidueName = fullResidueName.trim();
 
 		if (!(fullResidueName.equals(lastResidueName))) {
 		    if (newResidue != null) {
 			if (newStrandPending)
-			    m.addResidue(strandNumber-1, newResidue);
+			    m.addResidue(strandNumber - 1, newResidue);
 			else
 			    m.addResidue(strandNumber, newResidue);
 		    }
@@ -142,48 +147,50 @@ class PDBChemModel {
 		}
 
 		if (newStrandPending) {
-		    strandName = curLine.substring(21,22);  // Snag strand name
+		    strandName = curLine.substring(21, 22); // Snag strand name
 		    m.addStrand(strandName);
 		    newStrandPending = false;
 		}
-		tmpStg = curLine.substring(30,38);  // Snag x coord
+		tmpStg = curLine.substring(30, 38); // Snag x coord
 		x = (float) new Double(tmpStg).doubleValue();
-		tmpStg = curLine.substring(38,46);  // Snag y coord
+		tmpStg = curLine.substring(38, 46); // Snag y coord
 		y = (float) new Double(tmpStg).doubleValue();
-		tmpStg = curLine.substring(46,54);  // Snag z coord
+		tmpStg = curLine.substring(46, 54); // Snag z coord
 		z = (float) new Double(tmpStg).doubleValue();
 
-		elementType = curLine.substring(76,78);  // Snag atom elementType
+		elementType = curLine.substring(76, 78); // Snag atom
+							 // elementType
 		elementType = elementType.trim();
 		// If we can't get element type from substring(76,78) snag
-		//  the first character of the atom name
+		// the first character of the atom name
 		if (elementType.equalsIgnoreCase(""))
-		    elementType = getEleType(curLine.substring(12,15));
-		newAtom = new Atom(atomName,x,y,z);
+		    elementType = getEleType(curLine.substring(12, 15));
+		newAtom = new Atom(atomName, x, y, z);
 		newAtom.modelAtomNumber = modelAtomNumber;
 		newAtom.strandNumber = strandNumber;
 		newAtom.elementType = elementType;
 		newResidue.addAtom(newAtom);
 	    } // end ATOM line
-	    else if (curLine.regionMatches(true,0,"TER   ",0,6)) {
+	    else if (curLine.regionMatches(true, 0, "TER   ", 0, 6)) {
 		// Is the end of a strand
 		lastResidueName = "ZZZ";
 		residueNumber = 0;
 		strandNumber++;
 		newStrandPending = true;
 	    } // end TER line
-	    else   // is a line we skip
+	    else
+		// is a line we skip
 		;
-	    curLine = bufread.readLine();  // attempt to read next line
-	}  // end while (curLine != null)
+	    curLine = bufread.readLine(); // attempt to read next line
+	} // end while (curLine != null)
 
 	if (newStrandPending)
-	    m.addResidue(strandNumber-1,newResidue);
+	    m.addResidue(strandNumber - 1, newResidue);
 	else
-	    m.addResidue(strandNumber,newResidue);
-	bufread.close();  // close the buffer
+	    m.addResidue(strandNumber, newResidue);
+	bufread.close(); // close the buffer
 
-	//Determine the bonds between the atoms in the molecule
+	// Determine the bonds between the atoms in the molecule
 	m.determineBonds();
 
 	// Assign the molecule relative atom numbers
@@ -191,19 +198,20 @@ class PDBChemModel {
     }
 
     // This function pulls the element type from
-    //  the atom name
-    private String getEleType(String str){
+    // the atom name
+    private String getEleType(String str) {
 
-	int start=0, end=-1;
-	int i=0;
-	while( (str.charAt(i)==' ') || ((str.charAt(i)>='0') && (str.charAt(i)<='9')) ) {
+	int start = 0, end = -1;
+	int i = 0;
+	while ((str.charAt(i) == ' ')
+		|| ((str.charAt(i) >= '0') && (str.charAt(i) <= '9'))) {
 	    i++;
 	}
 	start = i;
 	end = i++;
-	if (i<str.length())
-	    if((str.charAt(i)>='a') && (str.charAt(i)<='z'))
+	if (i < str.length())
+	    if ((str.charAt(i) >= 'a') && (str.charAt(i) <= 'z'))
 		end = i;
-	return(str.substring(start,end+1));	
+	return (str.substring(start, end + 1));
     }
 }

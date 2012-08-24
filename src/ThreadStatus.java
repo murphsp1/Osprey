@@ -55,7 +55,7 @@ public class ThreadStatus {
     public int source;
     public int tag;
 
-    public ThreadStatus(){
+    public ThreadStatus() {
 
     }
 

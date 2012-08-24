@@ -80,27 +80,27 @@ import java.io.Serializable;
 /**
  * Handles functions and data associated with strands.
  */
-public class Strand implements Serializable{
+public class Strand implements Serializable {
 
-    String name = "";		// The strand name
-    int	numberOfResidues=0;		// Number of residues
-    int	numberOfAtoms=0;	// Number of atoms
-    int	number=-1;			// The number of the current strand
-    Residue	residue[];	// Array of residues in the strand
-    boolean isProtein = false;	// Is this strand a protein?
+    String name = ""; // The strand name
+    int numberOfResidues = 0; // Number of residues
+    int numberOfAtoms = 0; // Number of atoms
+    int number = -1; // The number of the current strand
+    Residue residue[]; // Array of residues in the strand
+    boolean isProtein = false; // Is this strand a protein?
     boolean rotTrans = false;
 
-    Strand(){
+    Strand() {
 	residue = new Residue[1];
     }
 
-    Strand(Residue firstResidue){
+    Strand(Residue firstResidue) {
 	residue = new Residue[1];
 	residue[0] = firstResidue;
 	numberOfResidues = 1;
     }
 
-    Strand(String strandName){
+    Strand(String strandName) {
 	numberOfResidues = 0;
 	numberOfAtoms = 0;
 	number = 0;
@@ -110,21 +110,21 @@ public class Strand implements Serializable{
     }
 
     // Displays some strand info to System.out for debugging
-    public void printStrandInfo(){
-	System.out.println("name = *"+name+"*");
-	System.out.println("numberOfResides = *"+numberOfResidues+"*");
-	System.out.println("numberOfAtoms = *"+numberOfAtoms+"*");
-	System.out.println("number = *"+number+"*");
+    public void printStrandInfo() {
+	System.out.println("name = *" + name + "*");
+	System.out.println("numberOfResides = *" + numberOfResidues + "*");
+	System.out.println("numberOfAtoms = *" + numberOfAtoms + "*");
+	System.out.println("number = *" + number + "*");
     }
 
     // Adds a residue to the strand
     // Best called by molecule.addResidue(.) but can be called
-    //  directly. If called directly the following fields are not
-    //  properly updated (as they can't be without molecule information)
-    //  Residue.moleculeResidueNumber
-    //  Atom.moleculeResidueNumber
-    //  Atom.moleculeAtomNumber
-    public int addResidue(Residue newResidue){
+    // directly. If called directly the following fields are not
+    // properly updated (as they can't be without molecule information)
+    // Residue.moleculeResidueNumber
+    // Atom.moleculeResidueNumber
+    // Atom.moleculeAtomNumber
+    public int addResidue(Residue newResidue) {
 
 	numberOfAtoms += newResidue.numberOfAtoms;
 
@@ -135,18 +135,18 @@ public class Strand implements Serializable{
 
 	newResidue.strandResidueNumber = numberOfResidues;
 	newResidue.strandNumber = number;
-	for(int i=0; i<newResidue.numberOfAtoms; i++){
+	for (int i = 0; i < newResidue.numberOfAtoms; i++) {
 	    newResidue.atom[i].strandNumber = number;
 	    newResidue.atom[i].strandResidueNumber = numberOfResidues;
 	}
 	residue[numberOfResidues] = newResidue;
-	return(numberOfResidues++);
+	return (numberOfResidues++);
     }
 
     // Deletes a residue from the strand
     // All possible appropriate bookeeping is done including
-    //  updates of bonds in this strand
-    public int deleteResidue(int residueNumber){
+    // updates of bonds in this strand
+    public int deleteResidue(int residueNumber) {
 
 	int oldResNumAtoms = residue[residueNumber].numberOfAtoms;
 	int lowAtomIndex = residue[residueNumber].atom[0].moleculeAtomNumber;
@@ -154,67 +154,66 @@ public class Strand implements Serializable{
 
 	numberOfAtoms -= oldResNumAtoms;
 
-	for(int i=residueNumber; i<numberOfResidues; i++){
+	for (int i = residueNumber; i < numberOfResidues; i++) {
 	    residue[i].strandResidueNumber -= 1;
-	    for(int j=0; j<residue[i].numberOfAtoms; j++){
+	    for (int j = 0; j < residue[i].numberOfAtoms; j++) {
 		residue[i].atom[j].strandResidueNumber -= 1;
 	    }
 	}
-	Residue smallerResidueArray[] = new Residue[numberOfResidues-1];
+	Residue smallerResidueArray[] = new Residue[numberOfResidues - 1];
 	System.arraycopy(residue, 0, smallerResidueArray, 0, residueNumber);
-	if (residueNumber < numberOfResidues-1)
-	    System.arraycopy(residue, residueNumber+1, smallerResidueArray,	residueNumber, residue.length-residueNumber-1);
+	if (residueNumber < numberOfResidues - 1)
+	    System.arraycopy(residue, residueNumber + 1, smallerResidueArray,
+		    residueNumber, residue.length - residueNumber - 1);
 	residue = smallerResidueArray;
 	// update atom bond indices
-	for(int i=0; i<numberOfResidues-1; i++){
-	    for(int j=0; j<residue[i].numberOfAtoms; j++){
-		for(int m=0; m<residue[i].atom[j].numberOfBonds; m++){
-		    if (residue[i].atom[j].bond[m] >= lowAtomIndex){
-			if (residue[i].atom[j].bond[m] <= highAtomIndex){
+	for (int i = 0; i < numberOfResidues - 1; i++) {
+	    for (int j = 0; j < residue[i].numberOfAtoms; j++) {
+		for (int m = 0; m < residue[i].atom[j].numberOfBonds; m++) {
+		    if (residue[i].atom[j].bond[m] >= lowAtomIndex) {
+			if (residue[i].atom[j].bond[m] <= highAtomIndex) {
 			    residue[i].atom[j].deleteBond(m);
 			    m--;
-			}
-			else
+			} else
 			    residue[i].atom[j].bond[m] -= oldResNumAtoms;
 		    }
 		}
 	    }
 	}
 
-	return(--numberOfResidues);
+	return (--numberOfResidues);
     }
 
     // Adds an atom to the strand and the specified residue
     // All appropriate strand, residue, and atom fields are updated
-    //  except for Atom.moleculeAtomNumber which we can't update
-    //  It should be updated in the molecule class
-    public int addAtom(int residueNumber, Atom newAtom){
+    // except for Atom.moleculeAtomNumber which we can't update
+    // It should be updated in the molecule class
+    public int addAtom(int residueNumber, Atom newAtom) {
 	// allow the residue to do its bookkeeping
 	residue[residueNumber].addAtom(newAtom);
-	return(numberOfAtoms++);
+	return (numberOfAtoms++);
     }
 
     // Deletes an atom from the specified residue
     // Appropriate bookkeeping is done
-    public int deleteAtom(int residueNumber, int atomNumber){
+    public int deleteAtom(int residueNumber, int atomNumber) {
 
 	int moleculeAtomNumber = residue[residueNumber].atom[atomNumber].moleculeAtomNumber;
 
-	if(residue[residueNumber].numberOfAtoms == 1)
-	    return(deleteResidue(residueNumber));
+	if (residue[residueNumber].numberOfAtoms == 1)
+	    return (deleteResidue(residueNumber));
 
 	residue[residueNumber].deleteAtom(atomNumber);
 
 	// update atom bond indices
-	for(int i=0; i<numberOfResidues; i++){
-	    if (!(residue[i].strandResidueNumber==residueNumber)){
-		for(int j=0; j<residue[i].numberOfAtoms; j++){
-		    for(int m=0; m<residue[i].atom[i].numberOfBonds; m++){
-			if (residue[i].atom[i].bond[m] == moleculeAtomNumber){
+	for (int i = 0; i < numberOfResidues; i++) {
+	    if (!(residue[i].strandResidueNumber == residueNumber)) {
+		for (int j = 0; j < residue[i].numberOfAtoms; j++) {
+		    for (int m = 0; m < residue[i].atom[i].numberOfBonds; m++) {
+			if (residue[i].atom[i].bond[m] == moleculeAtomNumber) {
 			    residue[i].atom[i].deleteBond(m);
 			    m--;
-			}
-			else if (residue[i].atom[i].bond[m] > moleculeAtomNumber){
+			} else if (residue[i].atom[i].bond[m] > moleculeAtomNumber) {
 			    residue[i].atom[i].bond[m] -= 1;
 			}
 		    }
@@ -222,20 +221,20 @@ public class Strand implements Serializable{
 	    }
 	}
 
-	return(numberOfAtoms--);
+	return (numberOfAtoms--);
     }
 
     // Returns the center of mass
-    public float[] getCenterOfMass(){
+    public float[] getCenterOfMass() {
 	float centOfMass[] = new float[3];
 	float xCenter = 0.0f, yCenter = 0.0f, zCenter = 0.0f;
 	double totalMass = 0.0;
 	double tmpMass = 0.0;
 
-	for(int j=0;j<numberOfResidues;j++) {
-	    for(int i=0;i<residue[j].numberOfAtoms;i++){
+	for (int j = 0; j < numberOfResidues; j++) {
+	    for (int i = 0; i < residue[j].numberOfAtoms; i++) {
 		tmpMass = residue[j].atom[i].mass;
-		if (tmpMass==0)
+		if (tmpMass == 0)
 		    System.out.println("** Zero mass atom detected???");
 		totalMass += tmpMass;
 		xCenter += (residue[j].atom[i].coord[0] * tmpMass);
@@ -249,12 +248,11 @@ public class Strand implements Serializable{
 	centOfMass[0] = xCenter;
 	centOfMass[1] = yCenter;
 	centOfMass[2] = zCenter;
-	return(centOfMass);
+	return (centOfMass);
     }
 
-
     // This function rotates the entire strand by thetaDeg
-    //  degrees around axis dx, dy, dz (around the center of mass)
+    // degrees around axis dx, dy, dz (around the center of mass)
     // If you don�t have a molecule pass null
     public void rotateAroundCOM(double dx, double dy, double dz,
 	    double thetaDeg, Molecule m) {
@@ -262,47 +260,52 @@ public class Strand implements Serializable{
 	// Get center of mass
 	float[] centOfMass = getCenterOfMass();
 
-	rotateStrand(dx,dy,dz,thetaDeg,m,centOfMass[0],centOfMass[1],centOfMass[2]);
-    }	
+	rotateStrand(dx, dy, dz, thetaDeg, m, centOfMass[0], centOfMass[1],
+		centOfMass[2]);
+    }
 
     // This function rotates the entire strand by thetaDeg
-    //  degrees around axis dx, dy, dz (around the point cx,cy,cz)
+    // degrees around axis dx, dy, dz (around the point cx,cy,cz)
     // If you don�t have a molecule pass null
-    public void rotateStrand(double dx, double dy, double dz,
-	    double thetaDeg, Molecule m, float cx, float cy, float cz) {
+    public void rotateStrand(double dx, double dy, double dz, double thetaDeg,
+	    Molecule m, float cx, float cy, float cz) {
 
-	float fx,fy,fz, tx,ty,tz;
+	float fx, fy, fz, tx, ty, tz;
 	fx = (new Double(dx)).floatValue();
 	fy = (new Double(dy)).floatValue();
 	fz = (new Double(dz)).floatValue();
 
 	float[][] rot_mtx = new float[3][3];
 	RotMatrix rM = new RotMatrix();
-	rM.getRotMatrix(fx,fy,fz,(float) thetaDeg,rot_mtx);
+	rM.getRotMatrix(fx, fy, fz, (float) thetaDeg, rot_mtx);
 
-	for(int w=0;w<numberOfResidues;w++) {
-	    for(int q=0;q<residue[w].numberOfAtoms;q++) {
-		tx=residue[w].atom[q].coord[0] - cx;
-		ty=residue[w].atom[q].coord[1] - cy;
-		tz=residue[w].atom[q].coord[2] - cz;
+	for (int w = 0; w < numberOfResidues; w++) {
+	    for (int q = 0; q < residue[w].numberOfAtoms; q++) {
+		tx = residue[w].atom[q].coord[0] - cx;
+		ty = residue[w].atom[q].coord[1] - cy;
+		tz = residue[w].atom[q].coord[2] - cz;
 
-		residue[w].atom[q].coord[0] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz * rot_mtx[0][2] + cx;
-		residue[w].atom[q].coord[1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz * rot_mtx[1][2] + cy;
-		residue[w].atom[q].coord[2] = tx * rot_mtx[2][0] + ty * rot_mtx[2][1] + tz * rot_mtx[2][2] + cz;
+		residue[w].atom[q].coord[0] = tx * rot_mtx[0][0] + ty
+			* rot_mtx[0][1] + tz * rot_mtx[0][2] + cx;
+		residue[w].atom[q].coord[1] = tx * rot_mtx[1][0] + ty
+			* rot_mtx[1][1] + tz * rot_mtx[1][2] + cy;
+		residue[w].atom[q].coord[2] = tx * rot_mtx[2][0] + ty
+			* rot_mtx[2][1] + tz * rot_mtx[2][2] + cz;
 
-		if (m!=null)
+		if (m != null)
 		    m.updateCoordinates(residue[w].atom[q]);
 	    }
 	}
     }
 
-    //Returns the strand-relative residue number of the residue with PDB residue number pdbResNum
-    public int mapPDBresNumToStrandResNum(int pdbResNum){
-	for (int i=0; i<numberOfResidues; i++){
-	    if (residue[i].getResNumber()==pdbResNum){
+    // Returns the strand-relative residue number of the residue with PDB
+    // residue number pdbResNum
+    public int mapPDBresNumToStrandResNum(int pdbResNum) {
+	for (int i = 0; i < numberOfResidues; i++) {
+	    if (residue[i].getResNumber() == pdbResNum) {
 		return residue[i].strandResidueNumber;
 	    }
 	}
 	return -1;
     }
-}	
+}

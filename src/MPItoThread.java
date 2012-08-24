@@ -51,7 +51,6 @@
 //	  KER        Kyle E. Roberts       Duke University         ker17@duke.edu
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -65,159 +64,157 @@ import mpi.MPI;
 import mpi.MPIException;
 import mpi.Status;
 
-
 public class MPItoThread {
-    static Hashtable<Thread,ThreadElement> threadEle = null;
+    static Hashtable<Thread, ThreadElement> threadEle = null;
     static ThreadElement[] threadEleArray = null;
     static ExecutorService exe = null;
-    //static Hashtable<Thread,KSParser> parsers = new Hashtable<Thread,KSParser>();
+    // static Hashtable<Thread,KSParser> parsers = new
+    // Hashtable<Thread,KSParser>();
     static boolean mpiRun = false;
     static int numThreads;
     static int numProc;
-
-
-
 
     public MPItoThread(boolean mpiRun, int numThreads) {
 	super();
 	MPItoThread.mpiRun = mpiRun;
 	MPItoThread.numThreads = numThreads;
-	MPItoThread.numProc = numThreads+1;
+	MPItoThread.numProc = numThreads + 1;
     }
 
     public static void initialize(boolean mpiRun, int numThreads) {
 	MPItoThread.mpiRun = mpiRun;
 	MPItoThread.numThreads = numThreads;
-	MPItoThread.numProc = numThreads+1;
+	MPItoThread.numProc = numThreads + 1;
 
-	if(!mpiRun){
+	if (!mpiRun) {
 	    threadEleArray = new ThreadElement[numProc];
-	    threadEle = new Hashtable<Thread,ThreadElement>();
+	    threadEle = new Hashtable<Thread, ThreadElement>();
 	}
     }
 
-    public static ThreadElement getThreadElement(int i){
+    public static ThreadElement getThreadElement(int i) {
 	return threadEleArray[i];
     }
 
-    public static void startThreads(KSParser mainKSP,Thread mainThread){
-	if(exe == null){
-	    //numThreads =  1; //Runtime.getRuntime().availableProcessors();
-	    //numProc = numThreads+1;
+    public static void startThreads(KSParser mainKSP, Thread mainThread) {
+	if (exe == null) {
+	    // numThreads = 1; //Runtime.getRuntime().availableProcessors();
+	    // numProc = numThreads+1;
 	    mainKSP.numProc = numProc;
 	    exe = Executors.newFixedThreadPool(numThreads);
 
 	    KSthread[] kst = new KSthread[numThreads];
-	    //KSParser[] ksp = new KSParser[numThreads+1];
-	    //ksp[0] = mainKSP;
+	    // KSParser[] ksp = new KSParser[numThreads+1];
+	    // ksp[0] = mainKSP;
 	    MPItoThread.threadEleArray[0] = threadEle.get(mainThread);
-	    for(int i=0; i<numThreads; i++){
-		threadEleArray[i+1] = new ThreadElement(i+1);
-		kst[i] = new KSthread(new KSParser(),i+1,threadEleArray[i+1]);
+	    for (int i = 0; i < numThreads; i++) {
+		threadEleArray[i + 1] = new ThreadElement(i + 1);
+		kst[i] = new KSthread(new KSParser(), i + 1,
+			threadEleArray[i + 1]);
 		kst[i].ksp.cfgName = mainKSP.cfgName;
-		//ksp[i+1] = kst[i].ksp;
+		// ksp[i+1] = kst[i].ksp;
 	    }
 
-	    //threadEle.kstarArray = ksp;
-	    for(int i=0; i<numThreads;i++){
-		//kst[i].ksp.threadEle.kstarArray = ksp;
+	    // threadEle.kstarArray = ksp;
+	    for (int i = 0; i < numThreads; i++) {
+		// kst[i].ksp.threadEle.kstarArray = ksp;
 		exe.execute(kst[i]);
 	    }
 	}
     }
 
     /******** Threaded Functions *********/
-    public static int Rank() throws MPIException{
-	if(mpiRun)
+    public static int Rank() throws MPIException {
+	if (mpiRun)
 	    return MPI.COMM_WORLD.Rank();
 	else
 	    return threadEle.get(Thread.currentThread()).getRank();
     }
 
-    public static int Size() throws MPIException{
-	if(mpiRun)
+    public static int Size() throws MPIException {
+	if (mpiRun)
 	    return MPI.COMM_WORLD.Size();
 	else
 	    return threadEle.get(Thread.currentThread()).getSize();
     }
 
-    public static Object Probe(int source, int tag) throws MPIException, InterruptedException{
-	if(mpiRun){
-	    if(source == -1)
+    public static Object Probe(int source, int tag) throws MPIException,
+	    InterruptedException {
+	if (mpiRun) {
+	    if (source == -1)
 		source = MPI.ANY_SOURCE;
-	    if(tag == -1)
+	    if (tag == -1)
 		tag = MPI.ANY_TAG;
 	    return MPI.COMM_WORLD.Probe(source, tag);
-	}
-	else
+	} else
 	    return threadEle.get(Thread.currentThread()).Probe(source, tag);
 
     }
 
-    public static Object Iprobe(int source, int tag) throws MPIException, InterruptedException{
-	if(mpiRun){
-	    if(source == -1)
+    public static Object Iprobe(int source, int tag) throws MPIException,
+	    InterruptedException {
+	if (mpiRun) {
+	    if (source == -1)
 		source = MPI.ANY_SOURCE;
-	    if(tag == -1)
+	    if (tag == -1)
 		tag = MPI.ANY_TAG;
 	    return MPI.COMM_WORLD.Iprobe(source, tag);
-	}
-	else
+	} else
 	    return threadEle.get(Thread.currentThread()).Iprobe(source, tag);
 
     }
 
-    //Either going to return a status or ThreadStatus
+    // Either going to return a status or ThreadStatus
     public static Object Recv(Object buf, int offset, int count, int type,
-	    int source, int tag) throws MPIException, InterruptedException{
-	if(mpiRun){
-	    if(source == -1)
+	    int source, int tag) throws MPIException, InterruptedException {
+	if (mpiRun) {
+	    if (source == -1)
 		source = MPI.ANY_SOURCE;
-	    if(tag == -1)
+	    if (tag == -1)
 		tag = MPI.ANY_TAG;
 	    Datatype dtype = getDatatype(type);
 	    return MPI.COMM_WORLD.Recv(buf, offset, count, dtype, source, tag);
-	}
-	else
-	    return threadEle.get(Thread.currentThread()).Recv(buf, offset, count, type, source, tag);
+	} else
+	    return threadEle.get(Thread.currentThread()).Recv(buf, offset,
+		    count, type, source, tag);
 
     }
 
     public static void Send(Object buf, int offset, int count, int type,
-	    int dest, int tag) throws MPIException, InterruptedException{
-	if(mpiRun){
+	    int dest, int tag) throws MPIException, InterruptedException {
+	if (mpiRun) {
 	    Datatype dtype = getDatatype(type);
 	    MPI.COMM_WORLD.Send(buf, offset, count, dtype, dest, tag);
-	}
-	else
-	    threadEle.get(Thread.currentThread()).Send(buf, offset, count, type, dest, tag);
+	} else
+	    threadEle.get(Thread.currentThread()).Send(buf, offset, count,
+		    type, dest, tag);
 
     }
 
-    //ISEND not supported yet for threaded functions
-    //will just call the normal send command
+    // ISEND not supported yet for threaded functions
+    // will just call the normal send command
     public static void Isend(Object buf, int offset, int count, int type,
-	    int dest, int tag) throws MPIException, InterruptedException{
-	if(mpiRun){
+	    int dest, int tag) throws MPIException, InterruptedException {
+	if (mpiRun) {
 	    Datatype dtype = getDatatype(type);
 	    MPI.COMM_WORLD.Isend(buf, offset, count, dtype, dest, tag);
-	}
-	else
-	    threadEle.get(Thread.currentThread()).Send(buf, offset, count, type, dest, tag);
+	} else
+	    threadEle.get(Thread.currentThread()).Send(buf, offset, count,
+		    type, dest, tag);
 
     }
 
-    public static Datatype getDatatype(int type){
-	switch(type){
-	case ThreadMessage.BOOLEAN :
+    public static Datatype getDatatype(int type) {
+	switch (type) {
+	case ThreadMessage.BOOLEAN:
 	    return MPI.BOOLEAN;
-	case ThreadMessage.INT :
+	case ThreadMessage.INT:
 	    return MPI.INT;
-	case ThreadMessage.OBJECT :
+	case ThreadMessage.OBJECT:
 	    return MPI.OBJECT;
-	case ThreadMessage.DOUBLE :
+	case ThreadMessage.DOUBLE:
 	    return MPI.DOUBLE;
-	case ThreadMessage.FLOAT :
+	case ThreadMessage.FLOAT:
 	    return MPI.FLOAT;
 	default:
 	    System.out.println("MPI OBJECT NOT CODED YET");
@@ -225,65 +222,56 @@ public class MPItoThread {
 	}
 	return null;
 
-
     }
 
-    public static int getStatusTag(Object obj){
-	if(obj instanceof ThreadStatus){
-	    return ((ThreadStatus)obj).tag;
-	}
-	else if(obj instanceof mpi.Status){
-	    return ((Status)obj).tag;
-	}
-	else{
+    public static int getStatusTag(Object obj) {
+	if (obj instanceof ThreadStatus) {
+	    return ((ThreadStatus) obj).tag;
+	} else if (obj instanceof mpi.Status) {
+	    return ((Status) obj).tag;
+	} else {
 	    System.out.println("Status not defined");
 	    System.exit(0);
 	}
 	return -1;
     }
 
-    public static int getStatusSource(Object obj){
-	if(obj instanceof ThreadStatus){
-	    return ((ThreadStatus)obj).source;
-	}
-	else if(obj instanceof mpi.Status){
-	    return ((Status)obj).source;
-	}
-	else{
+    public static int getStatusSource(Object obj) {
+	if (obj instanceof ThreadStatus) {
+	    return ((ThreadStatus) obj).source;
+	} else if (obj instanceof mpi.Status) {
+	    return ((Status) obj).source;
+	} else {
 	    System.out.println("Status not defined");
 	    System.exit(0);
 	}
 	return -1;
     }
+
     /********* End Threaded Functions *****************/
 
-    //Function taken from: http://www.javaworld.com/javaworld/javatips/jw-javatip76.html?page=2
-    //Java Tip 76: An alternative to the deep copy technique
-    //Author: Dave Miller
+    // Function taken from:
+    // http://www.javaworld.com/javaworld/javatips/jw-javatip76.html?page=2
+    // Java Tip 76: An alternative to the deep copy technique
+    // Author: Dave Miller
     static public Object deepCopy(Object oldObj) throws Exception {
 	ObjectOutputStream oos = null;
 	ObjectInputStream ois = null;
-	try
-	{
-	    ByteArrayOutputStream bos = 
-		    new ByteArrayOutputStream(); // A
-		    oos = new ObjectOutputStream(bos); // B
-		    // serialize and pass the object
-		    oos.writeObject(oldObj);   // C
-		    oos.flush();               // D
-		    ByteArrayInputStream bin = 
-			    new ByteArrayInputStream(bos.toByteArray()); // E
-		    ois = new ObjectInputStream(bin);                  // F
-		    // return the new object
-		    return ois.readObject(); // G
-	}
-	catch(Exception e)
-	{
+	try {
+	    ByteArrayOutputStream bos = new ByteArrayOutputStream(); // A
+	    oos = new ObjectOutputStream(bos); // B
+	    // serialize and pass the object
+	    oos.writeObject(oldObj); // C
+	    oos.flush(); // D
+	    ByteArrayInputStream bin = new ByteArrayInputStream(
+		    bos.toByteArray()); // E
+	    ois = new ObjectInputStream(bin); // F
+	    // return the new object
+	    return ois.readObject(); // G
+	} catch (Exception e) {
 	    System.out.println("Exception in ObjectCloner = " + e);
-	    throw(e);
-	}
-	finally
-	{
+	    throw (e);
+	} finally {
 	    oos.close();
 	    ois.close();
 	}

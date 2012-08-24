@@ -66,8 +66,7 @@
 /**
  * Interface for comparing objects.
  */
-public interface RyanComparable
-{
+public interface RyanComparable {
     int compareTo(Object other);
 
 }

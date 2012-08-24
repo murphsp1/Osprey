@@ -67,25 +67,29 @@ import java.util.*;
 import java.io.Serializable;
 
 /**
- * This class reads from a generic residue file that includes element type, AMBER atom type, limited connectivity, 
- * and partial charge. This file is analogous to AminoAcidTemplates.java; instead of amino acid parameters, parameters
- * for general compounds and nucleic acids (referred to as 'generic residues') are read.
- * By matching these generic residue templates to actual generic residues in a molecule, the corresponding
- * template atom types and partial charges can be assigned to the matched residues.
- * The format of the input parameter file is similar to the PARM AMBER datafiles, identical to the all_amino94.in.
+ * This class reads from a generic residue file that includes element type,
+ * AMBER atom type, limited connectivity, and partial charge. This file is
+ * analogous to AminoAcidTemplates.java; instead of amino acid parameters,
+ * parameters for general compounds and nucleic acids (referred to as 'generic
+ * residues') are read. By matching these generic residue templates to actual
+ * generic residues in a molecule, the corresponding template atom types and
+ * partial charges can be assigned to the matched residues. The format of the
+ * input parameter file is similar to the PARM AMBER datafiles, identical to the
+ * all_amino94.in.
  */
-public class GenericResidueTemplates implements Serializable{
+public class GenericResidueTemplates implements Serializable {
 
     public static final int MAX_NUM_RES = 50;
 
     String grFilename = "all_nuc94_and_gr.in";
 
-    Residue grResidues[];   // arrays of residues
+    Residue grResidues[]; // arrays of residues
     int numGRs;
 
     GenericResidueTemplates() throws Exception {
 
-	FileInputStream is = new FileInputStream( EnvironmentVars.getDataDir().concat(grFilename) );
+	FileInputStream is = new FileInputStream(EnvironmentVars.getDataDir()
+		.concat(grFilename));
 	BufferedReader bufread = new BufferedReader(new InputStreamReader(is));
 	String curLine = null, tmpName = null;
 	int dumPresent = 0;
@@ -95,11 +99,11 @@ public class GenericResidueTemplates implements Serializable{
 	curLine = bufread.readLine();
 	curLine = bufread.readLine();
 
-	while( curLine != null ) {
+	while (curLine != null) {
 	    // Skip over first line which is the long residue name
 	    curLine = bufread.readLine();
 	    if (curLine.length() >= 4)
-		if (curLine.substring(0,4).equalsIgnoreCase("stop")) {
+		if (curLine.substring(0, 4).equalsIgnoreCase("stop")) {
 		    curLine = bufread.readLine();
 		    continue;
 		}
@@ -107,7 +111,7 @@ public class GenericResidueTemplates implements Serializable{
 	    curLine = bufread.readLine();
 	    // The next line contains the 3 letter amino acid name
 	    curLine = bufread.readLine();
-	    tmpName = getToken(curLine,1);
+	    tmpName = getToken(curLine, 1);
 	    Residue newRes = new Residue();
 	    newRes.name = tmpName;
 	    // Skip next 2 lines
@@ -117,37 +121,39 @@ public class GenericResidueTemplates implements Serializable{
 	    curLine = bufread.readLine();
 	    // Skip the dummy atoms
 	    dumPresent = 0;
-	    while (getToken(curLine,2).equalsIgnoreCase("DUMM")) {
+	    while (getToken(curLine, 2).equalsIgnoreCase("DUMM")) {
 		dumPresent++;
 		curLine = bufread.readLine();
 	    }
 	    dumPresent++; // to adjust for 0-based
-	    while (!getToken(curLine,2).equals("")) {
+	    while (!getToken(curLine, 2).equals("")) {
 		Atom at = new Atom();
-		tmpName = getToken(curLine,2);
+		tmpName = getToken(curLine, 2);
 		at.changeType(tmpName);
-		at.forceFieldType = getToken(curLine,3);
-		at.charge = (float) (new Float(getToken(curLine,11)).floatValue());
+		at.forceFieldType = getToken(curLine, 3);
+		at.charge = (float) (new Float(getToken(curLine, 11))
+			.floatValue());
 		at.isBBatom = at.setIsBBatom();
-		at.addBond(((new Integer(getToken(curLine,5))).intValue())-dumPresent);
-		newRes.addAtom(at);  // add atom
-		curLine = bufread.readLine();  // read next line
+		at.addBond(((new Integer(getToken(curLine, 5))).intValue())
+			- dumPresent);
+		newRes.addAtom(at); // add atom
+		curLine = bufread.readLine(); // read next line
 	    }
 	    // Eventually we might want to be able to handle the improper
-	    //  torsions listed here
+	    // torsions listed here
 
 	    // Add the residue to the array
 	    grResidues[numGRs++] = newRes;
 	    // Read until the end of the residue
 	    boolean atDone = false;
 	    if (curLine.length() >= 4)
-		atDone = curLine.substring(0,4).equalsIgnoreCase("done");
+		atDone = curLine.substring(0, 4).equalsIgnoreCase("done");
 	    else
 		atDone = false;
 	    while (!atDone) {
 		curLine = bufread.readLine();
 		if (curLine.length() >= 4)
-		    atDone = curLine.substring(0,4).equalsIgnoreCase("done");
+		    atDone = curLine.substring(0, 4).equalsIgnoreCase("done");
 	    }
 	}
 	bufread.close();
@@ -157,21 +163,21 @@ public class GenericResidueTemplates implements Serializable{
     // This function returns the xth token in string s
     private String getToken(String s, int x) {
 
-	int curNum = 1;	
-	StringTokenizer st = new StringTokenizer(s," ,;\t\n\r\f");
+	int curNum = 1;
+	StringTokenizer st = new StringTokenizer(s, " ,;\t\n\r\f");
 
 	while (curNum < x) {
 	    curNum++;
 	    if (st.hasMoreTokens())
 		st.nextToken();
 	    else {
-		return(new String(""));
+		return (new String(""));
 	    }
 	}
 
-	if (st.hasMoreTokens())		
-	    return(st.nextToken());
-	return(new String(""));
+	if (st.hasMoreTokens())
+	    return (st.nextToken());
+	return (new String(""));
 
     } // end getToken
 

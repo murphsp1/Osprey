@@ -50,18 +50,18 @@
 //	---------   -----------------    ------------------------    ----------------------------
 //     KER        Kyle E. Roberts       Duke University         ker17@duke.edu
 
-
 // This class is used to store conformations.  It is used in OSPREY to store the top conformations.  
-public class ConfPair implements Comparable{
+public class ConfPair implements Comparable {
     int[] conf;
-    //minE: 0 unMinE: 1
+    // minE: 0 unMinE: 1
     float[] energy;
-    public ConfPair(int[] conformation, float[] e){
+
+    public ConfPair(int[] conformation, float[] e) {
 	conf = new int[conformation.length];
-	for(int i=0; i<conformation.length;i++)
+	for (int i = 0; i < conformation.length; i++)
 	    conf[i] = conformation[i];
 	energy = new float[e.length];
-	for(int i=0; i<e.length;i++)
+	for (int i = 0; i < e.length; i++)
 	    energy[i] = e[i];
 
     }
@@ -69,10 +69,10 @@ public class ConfPair implements Comparable{
     @Override
     public int compareTo(Object o) throws ClassCastException {
 	// TODO Auto-generated method stub
-	if(!(o instanceof ConfPair))
+	if (!(o instanceof ConfPair))
 	    throw new ClassCastException("Another confPair was expected.");
 	float otherE = ((ConfPair) o).energy[0];
-	if(otherE >= energy[0])
+	if (otherE >= energy[0])
 	    return 1;
 	else
 	    return -1;

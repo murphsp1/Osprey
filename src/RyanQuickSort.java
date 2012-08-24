@@ -64,63 +64,66 @@
  */
 
 /**
- * This class implements quick sort; sorted objects must implement RyanComparable.
+ * This class implements quick sort; sorted objects must implement
+ * RyanComparable.
  */
-public class RyanQuickSort
-{
+public class RyanQuickSort {
 
     Object dArray[] = null;
 
-    RyanQuickSort() {}
+    RyanQuickSort() {
+    }
 
     // Sorts the array a. Objects in array a must implement
-    //  RyanComparable
+    // RyanComparable
     public void Sort(Object[] a) {
 
 	RyanQuickSort r = new RyanQuickSort();
 	r.dArray = a;
-	if (r.isAlreadySorted()) return;
-	r.quickSort(0, r.dArray.length-1);
+	if (r.isAlreadySorted())
+	    return;
+	r.quickSort(0, r.dArray.length - 1);
 	if (r.isAlreadySorted())
 	    return;
 	else {
 	    System.out.println("SORT FAILED!");
 	}
-	return;	
+	return;
     }
 
     private void quickSort(int q, int w) {
 	if (q < w) {
-	    int p = partition(q,w);
+	    int p = partition(q, w);
 	    if (p == w)
 		p--;
-	    quickSort(q,p);
-	    quickSort(p+1,w);
+	    quickSort(q, p);
+	    quickSort(p + 1, w);
 	}
     }
 
     private int partition(int b, int t) {
 	Object pivot = dArray[b];
-	while(true) {
-	    while ( (((RyanComparable)dArray[t]).compareTo(pivot) >= 0 ) && (b < t) )
+	while (true) {
+	    while ((((RyanComparable) dArray[t]).compareTo(pivot) >= 0)
+		    && (b < t))
 		t--;
-	    while ( (((RyanComparable)dArray[b]).compareTo(pivot) < 0 ) && (b < t) )
+	    while ((((RyanComparable) dArray[b]).compareTo(pivot) < 0)
+		    && (b < t))
 		b++;
 	    if (b < t) {
 		// exchange
 		Object tmp = dArray[b];
 		dArray[b] = dArray[t];
 		dArray[t] = tmp;
-	    }
-	    else
+	    } else
 		return t;
 	}
     }
 
     // Returns true if array is sorted
     private boolean isAlreadySorted() {
-	for(int i=1;i<dArray.length;i++){
-	    if (((RyanComparable)dArray[i-1]).compareTo(dArray[i]) > 0)
+	for (int i = 1; i < dArray.length; i++) {
+	    if (((RyanComparable) dArray[i - 1]).compareTo(dArray[i]) > 0)
 		return false;
 	}
 	return true;

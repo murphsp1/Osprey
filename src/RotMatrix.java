@@ -57,126 +57,128 @@
  * Written by: Ryan Lilien  (2001-2004)
  */
 
-/** 
+/**
  * This class implements rotation matricies.
  */
-public class RotMatrix
-{
+public class RotMatrix {
 
-
-    RotMatrix()
-    {
+    RotMatrix() {
 
     }
 
     // Rotates an array of points around the +x axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void xAxisRotate(float thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void xAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(1.0f,0.0f,0.0f,thetaDeg,theCoords,numCoords);
+	axisRotate(1.0f, 0.0f, 0.0f, thetaDeg, theCoords, numCoords);
     }
 
     // Rotates an array of points around the +x axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void xAxisRotate(double thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void xAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(1.0f,0.0f,0.0f,new Double(thetaDeg).floatValue(),theCoords,numCoords);
+	axisRotate(1.0f, 0.0f, 0.0f, new Double(thetaDeg).floatValue(),
+		theCoords, numCoords);
     }
 
     // Rotates an array of points around the +y axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void yAxisRotate(float thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void yAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(0.0f,1.0f,0.0f,thetaDeg,theCoords,numCoords);
+	axisRotate(0.0f, 1.0f, 0.0f, thetaDeg, theCoords, numCoords);
     }
 
     // Rotates an array of points around the +y axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void yAxisRotate(double thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void yAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(0.0f,1.0f,0.0f,new Double(thetaDeg).floatValue(),theCoords,numCoords);
+	axisRotate(0.0f, 1.0f, 0.0f, new Double(thetaDeg).floatValue(),
+		theCoords, numCoords);
     }
 
     // Rotates an array of points around the +z axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void zAxisRotate(float thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void zAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(0.0f,0.0f,1.0f,thetaDeg,theCoords,numCoords);
+	axisRotate(0.0f, 0.0f, 1.0f, thetaDeg, theCoords, numCoords);
     }
 
     // Rotates an array of points around the +z axis
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
-    public void zAxisRotate(double thetaDeg, float theCoords[],int numCoords) {
+    // are in position 3*i .. (3*(i+1))-1
+    public void zAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
 
-	axisRotate(0.0f,0.0f,1.0f,new Double(thetaDeg).floatValue(),theCoords,numCoords);
+	axisRotate(0.0f, 0.0f, 1.0f, new Double(thetaDeg).floatValue(),
+		theCoords, numCoords);
     }
-
 
     // Rotates an array of points around the axis ax, ay, az
-    //  using a right handed rotation of thetaDeg degrees
+    // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
-    //  are in position 3*i .. (3*(i+1))-1
+    // are in position 3*i .. (3*(i+1))-1
     public void axisRotate(float ax, float ay, float az, float thetaDeg,
-	    float theCoords[],int numCoords) {
+	    float theCoords[], int numCoords) {
 
-	float tx,ty,tz;
+	float tx, ty, tz;
 
 	float[][] rot_mtx = new float[3][3];
-	getRotMatrix(ax,ay,az,(float) thetaDeg,rot_mtx);
+	getRotMatrix(ax, ay, az, (float) thetaDeg, rot_mtx);
 
 	int ix3 = 0;
-	for(int i=0;i<numCoords;i++){
-	    tx=theCoords[ix3];
-	    ty=theCoords[ix3+1];
-	    tz=theCoords[ix3+2];
+	for (int i = 0; i < numCoords; i++) {
+	    tx = theCoords[ix3];
+	    ty = theCoords[ix3 + 1];
+	    tz = theCoords[ix3 + 2];
 
-	    theCoords[ix3] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz * rot_mtx[0][2];
-	    theCoords[ix3+1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz * rot_mtx[1][2];
-	    theCoords[ix3+2] = tx * rot_mtx[2][0] + ty * rot_mtx[2][1] + tz * rot_mtx[2][2];
+	    theCoords[ix3] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz
+		    * rot_mtx[0][2];
+	    theCoords[ix3 + 1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz
+		    * rot_mtx[1][2];
+	    theCoords[ix3 + 2] = tx * rot_mtx[2][0] + ty * rot_mtx[2][1] + tz
+		    * rot_mtx[2][2];
 
 	    ix3 += 3;
 	}
-    }	
+    }
 
     // Translates an array of points by the specified amount
     public void translate(float tx, float ty, float tz, float theCoords[],
 	    int numCoords) {
 
 	int ix3 = 0;
-	for(int i=0;i<numCoords;i++){
+	for (int i = 0; i < numCoords; i++) {
 	    theCoords[ix3] += tx;
-	    theCoords[ix3+1] += ty;
-	    theCoords[ix3+2] += tz;
+	    theCoords[ix3 + 1] += ty;
+	    theCoords[ix3 + 2] += tz;
 	    ix3 += 3;
 	}
     }
 
     // This function constructs a rotation matrix from a rotation in
-    //  axis-angle notation
+    // axis-angle notation
     public void getRotMatrix(float fx, float fy, float fz, float angle,
 	    float[][] rot_mtx) {
 
 	// First convert the axisangle to a quaternion
-	float sin_a = (float) Math.sin(angle*3.14159265/180/2);
-	float cos_a = (float) Math.cos(angle*3.14159265/180/2);
-	float tmp = (float) Math.sqrt(fx*fx + fy*fy + fz*fz);
+	float sin_a = (float) Math.sin(angle * 3.14159265 / 180 / 2);
+	float cos_a = (float) Math.cos(angle * 3.14159265 / 180 / 2);
+	float tmp = (float) Math.sqrt(fx * fx + fy * fy + fz * fz);
 	float qx = fx / tmp * sin_a;
 	float qy = fy / tmp * sin_a;
-	float qz = fz / tmp * sin_a;	
+	float qz = fz / tmp * sin_a;
 	float qw = cos_a;
-	tmp = (float) Math.sqrt(qx*qx + qy*qy + qz*qz + qw*qw);
+	tmp = (float) Math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
 	qx /= tmp;
 	qy /= tmp;
 	qz /= tmp;

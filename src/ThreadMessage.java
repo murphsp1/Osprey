@@ -51,31 +51,28 @@
 //	  KER        Kyle E. Roberts       Duke University         ker17@duke.edu
 ///////////////////////////////////////////////////////////////////////////////////////////////
 public class ThreadMessage {
-    final static int UNDEFINED = -1 ;
-    final static int NULL      =  0 ;
-    final static int BYTE      =  1 ;
-    final static int CHAR      =  2 ;
-    final static int SHORT     =  3 ;
-    final static int BOOLEAN   =  4 ;
-    final static int INT       =  5 ;
-    final static int LONG      =  6 ;
-    final static int FLOAT     =  7 ;
-    final static int DOUBLE    =  8 ;  
-    final static int PACKED    =  9 ;
-    final static int LB        = 10 ;
-    final static int UB        = 11 ;
-    final static int OBJECT    = 12 ;
+    final static int UNDEFINED = -1;
+    final static int NULL = 0;
+    final static int BYTE = 1;
+    final static int CHAR = 2;
+    final static int SHORT = 3;
+    final static int BOOLEAN = 4;
+    final static int INT = 5;
+    final static int LONG = 6;
+    final static int FLOAT = 7;
+    final static int DOUBLE = 8;
+    final static int PACKED = 9;
+    final static int LB = 10;
+    final static int UB = 11;
+    final static int OBJECT = 12;
 
     final static int ANY_SOURCE = -1;
-    final	static int ANY_TAG = -1;
+    final static int ANY_TAG = -1;
 
-    public int dataType; 
+    public int dataType;
     public int source;
     public int tag;
     public Object obj;
-
-
-
 
     public ThreadMessage(Object obj, int dataType, int source, int tag) {
 	this.dataType = dataType;
@@ -84,76 +81,71 @@ public class ThreadMessage {
 	this.obj = obj;
     }
 
-
-
-
-    public Object getObj(int offset, int count){
-	return determineObj(obj,dataType,offset,count);
+    public Object getObj(int offset, int count) {
+	return determineObj(obj, dataType, offset, count);
     }
 
-    public Object determineObj(Object obj, int dataType, int offset, int count){
+    public Object determineObj(Object obj, int dataType, int offset, int count) {
 	Object o = null;
-	switch(dataType){
-	case INT :
+	switch (dataType) {
+	case INT:
 	    o = new Integer[count];
-	    if(obj instanceof Integer[]){
-		for(int i=offset; i<offset+count;i++)
-		    ((Integer[])o)[i-offset]= ((Integer[])obj)[i];
-	    }
-	    else{
-		for(int i=offset; i<offset+count;i++)
-		    ((Integer[])o)[i-offset]= ((int[])obj)[i];
+	    if (obj instanceof Integer[]) {
+		for (int i = offset; i < offset + count; i++)
+		    ((Integer[]) o)[i - offset] = ((Integer[]) obj)[i];
+	    } else {
+		for (int i = offset; i < offset + count; i++)
+		    ((Integer[]) o)[i - offset] = ((int[]) obj)[i];
 	    }
 	    return o;
 
-	case BOOLEAN :
+	case BOOLEAN:
 	    o = new Boolean[count];
-	    if(obj instanceof Boolean[]){
-		for(int i=offset; i<offset+count;i++)
-		    ((Boolean[])o)[i-offset]= ((Boolean[])obj)[i];
+	    if (obj instanceof Boolean[]) {
+		for (int i = offset; i < offset + count; i++)
+		    ((Boolean[]) o)[i - offset] = ((Boolean[]) obj)[i];
+	    } else {
+		for (int i = offset; i < offset + count; i++)
+		    ((Boolean[]) o)[i - offset] = ((boolean[]) obj)[i];
 	    }
-	    else{
-		for(int i=offset; i<offset+count;i++)
-		    ((Boolean[])o)[i-offset]= ((boolean[])obj)[i];
-	    }
-	    return o;				
-	case FLOAT :
+	    return o;
+	case FLOAT:
 	    o = new Float[count];
-	    if(obj instanceof Float[]){
-		for(int i=offset; i<offset+count;i++)
-		    ((Float[])o)[i-offset]= ((Float[])obj)[i];
-	    }
-	    else{
-		for(int i=offset; i<offset+count;i++)
-		    ((Float[])o)[i-offset]= ((float[])obj)[i];
+	    if (obj instanceof Float[]) {
+		for (int i = offset; i < offset + count; i++)
+		    ((Float[]) o)[i - offset] = ((Float[]) obj)[i];
+	    } else {
+		for (int i = offset; i < offset + count; i++)
+		    ((Float[]) o)[i - offset] = ((float[]) obj)[i];
 	    }
 	    return o;
-	case DOUBLE :
+	case DOUBLE:
 	    o = new double[count];
-	    for(int i=offset; i<offset+count;i++)
-		((double[])o)[i-offset]= ((double[])obj)[i];
+	    for (int i = offset; i < offset + count; i++)
+		((double[]) o)[i - offset] = ((double[]) obj)[i];
 
 	    return o;
-	case OBJECT :
+	case OBJECT:
 	    o = new Object[count];
-	    for(int i=offset; i<offset+count;i++)
-		((Object[])o)[i-offset]= ((Object[])obj)[i];
+	    for (int i = offset; i < offset + count; i++)
+		((Object[]) o)[i - offset] = ((Object[]) obj)[i];
 
 	    return o;
-	case BYTE :
+	case BYTE:
 	    o = new byte[count];
-	    for(int i=offset; i<offset+count;i++)
-		((byte[])o)[i-offset]= ((byte[])obj)[i];
+	    for (int i = offset; i < offset + count; i++)
+		((byte[]) o)[i - offset] = ((byte[]) obj)[i];
 
 	    return o;
 
 	default:
-	    System.out.println("TRYING TO GET OBJ THAT HASN'T BEEN WRITTEN YET: "+dataType);
+	    System.out
+		    .println("TRYING TO GET OBJ THAT HASN'T BEEN WRITTEN YET: "
+			    + dataType);
 	    System.exit(0);
 	}
 
 	return o;
     }
-
 
 }

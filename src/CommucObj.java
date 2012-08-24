@@ -68,13 +68,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * The CommucObj class is a data structure used in communication between the master
- *  and slave nodes. It is basically just a data container.
- * It allows the master node to specify what type of search the slave should perform
- *  and it allows the slave to return the result of the computation to the master.
+ * The CommucObj class is a data structure used in communication between the
+ * master and slave nodes. It is basically just a data container. It allows the
+ * master node to specify what type of search the slave should perform and it
+ * allows the slave to return the result of the computation to the master.
  */
-public class CommucObj implements Serializable
-{
+public class CommucObj implements Serializable {
     public class ConfInfo implements Serializable {
 	String AA[] = null;
 	int AAnums[] = null;
@@ -83,7 +82,7 @@ public class CommucObj implements Serializable
 	float unMinE = 0.0f;
 	float minE = 0.0f;
 
-	ConfInfo (int treeLevels){
+	ConfInfo(int treeLevels) {
 	    rot = new int[treeLevels];
 	    AA = new String[treeLevels];
 	    AAnums = new int[treeLevels];
@@ -91,19 +90,15 @@ public class CommucObj implements Serializable
     }
 
     ConfInfo confSeq[] = null;
-    /*int E_searchNumConfsTotal = 0;
-	int E_searchNumConfsPrunedByE = 0;
-	int E_searchNumConfsPrunedByS = 0;
-	int E_searchNumConfsEvaluated = 0;
-	int E_searchNumConfsLeft = 0;
-	int E_searchNumPrunedMinDEE = 0;
-	int EL_searchNumConfsTotal = 0;
-	int EL_searchNumConfsPrunedByE = 0;
-	int EL_searchNumConfsPrunedByS = 0;
-	int EL_searchNumConfsEvaluated = 0;
-	int EL_searchNumConfsLeft = 0;
-	int EL_searchNumPrunedMinDEE = 0;
-	float EL_searchBestEnergyFound = 99999.0f;*/
+    /*
+     * int E_searchNumConfsTotal = 0; int E_searchNumConfsPrunedByE = 0; int
+     * E_searchNumConfsPrunedByS = 0; int E_searchNumConfsEvaluated = 0; int
+     * E_searchNumConfsLeft = 0; int E_searchNumPrunedMinDEE = 0; int
+     * EL_searchNumConfsTotal = 0; int EL_searchNumConfsPrunedByE = 0; int
+     * EL_searchNumConfsPrunedByS = 0; int EL_searchNumConfsEvaluated = 0; int
+     * EL_searchNumConfsLeft = 0; int EL_searchNumPrunedMinDEE = 0; float
+     * EL_searchBestEnergyFound = 99999.0f;
+     */
     int searchNumConfsTotal[] = null;
     int searchNumConfsPrunedByE[] = null;
     int searchNumConfsPrunedByS[] = null;
@@ -112,31 +107,34 @@ public class CommucObj implements Serializable
     int searchNumPrunedMinDEE[] = null;
     float searchBestEnergyFound[] = null;
     BigDecimal q[] = null;
-    /*BigDecimal q_E = new BigDecimal(0.0);
-	BigDecimal q_EL = new BigDecimal(0.0);
-	BigDecimal q_L = new BigDecimal(0.0);*/
+    /*
+     * BigDecimal q_E = new BigDecimal(0.0); BigDecimal q_EL = new
+     * BigDecimal(0.0); BigDecimal q_L = new BigDecimal(0.0);
+     */
     BigDecimal bestScore = new BigDecimal(0.0);
     double bestEMin[] = null;
     double bestE[] = null;
-    /*double bestBoundEMin = 0.0;		// The best minimized bound energy
-	double bestUnBoundEMin = 0.0;	// The best minimized unbound energy
-	double bestBoundE = 0.0;		// The best bound energy (no minimization)
-	double bestUnBoundE = 0.0;*/		// The best unbound energy (no minimization)
+    /*
+     * double bestBoundEMin = 0.0; // The best minimized bound energy double
+     * bestUnBoundEMin = 0.0; // The best minimized unbound energy double
+     * bestBoundE = 0.0; // The best bound energy (no minimization) double
+     * bestUnBoundE = 0.0;
+     */// The best unbound energy (no minimization)
     // passed from the master to the slave
 
-    boolean typeDep = false;	
+    boolean typeDep = false;
 
     String currentMutation[] = null;
-    //int resMap[] = null;
-    /*String resDefault[] = null;*/
+    // int resMap[] = null;
+    /* String resDefault[] = null; */
     int[][] strandMut = null;
     String[][] strandDefault = null;
     boolean[] strandPresent = null;
     String[][] strandLimits = null;
     int strandsPresent = 0;
     int mutableSpots = 0;
-    //String ligType = null;
-    //boolean ligPresent = false;
+    // String ligType = null;
+    // boolean ligPresent = false;
     int numMutations = 0;
     String arpFilenameMin = null;
     String arpFilenameMax = null;
@@ -147,17 +145,18 @@ public class CommucObj implements Serializable
     boolean resMutatable[] = null;
     String minDEEfile = null;
     float initEw = 0.0f;
-    float pruningE = (float)Math.pow(10,38);
+    float pruningE = (float) Math.pow(10, 38);
     boolean repeatEW[] = null;
     boolean allPruned[] = null;
-    /*boolean E_repeatEw = false;
-	boolean EL_repeatEw = false;
-	boolean EL_allPruned = false;
-	boolean E_allPruned = false;*/
+    /*
+     * boolean E_repeatEw = false; boolean EL_repeatEw = false; boolean
+     * EL_allPruned = false; boolean E_allPruned = false;
+     */
     int mutationNumber = -1;
     ParamSet params = null;
     boolean PEMcomp = false;
-    boolean entropyComp = false; //this *must* be false for the pairwise matrix energy computation
+    boolean entropyComp = false; // this *must* be false for the pairwise matrix
+				 // energy computation
     boolean compASdist = false;
     boolean asDist[] = null;
     float dist = 0.0f;
@@ -169,7 +168,7 @@ public class CommucObj implements Serializable
     int numResidues = 0;
     float stericThresh = -10000.0f;
     float softStericThresh = -10000.0f;
-    //int numInAS = 0;
+    // int numInAS = 0;
 
     boolean computeEVEnergy = true;
     boolean doMinimization = true;
@@ -179,7 +178,7 @@ public class CommucObj implements Serializable
     boolean repeatSearch = true;
     boolean calculateVolumes = true;
     boolean approxMinGMEC = false;
-    float lambda = (float)Math.pow(10, 38);
+    float lambda = (float) Math.pow(10, 38);
     boolean distDepDielect = true;
     double dielectConst = 1.0;
     boolean doDihedE = false;
@@ -194,8 +193,9 @@ public class CommucObj implements Serializable
     int numberOfStrands = 0;
     // Timing info (in seconds)
     int q_Time[] = null;
-    /*int q_E_Time = 0;
-	int q_EL_Time = 0;*/
+    /*
+     * int q_E_Time = 0; int q_EL_Time = 0;
+     */
     int numComplexes = 0;
 
     // Identification information
@@ -210,15 +210,15 @@ public class CommucObj implements Serializable
     boolean workToDo = true;
     // when workToDo is false the slave exits
 
-
-    //Variables specific to PEM computation
+    // Variables specific to PEM computation
     int resMut[] = null;
-    String flagMutType = null;	
-    SamplingEEntries compEE[] = null;//initialized by the slave node, not by the master
-    //int numLigRotamers = 0;	
+    String flagMutType = null;
+    SamplingEEntries compEE[] = null;// initialized by the slave node, not by
+				     // the master
+    // int numLigRotamers = 0;
     int elapsedTime = 0; // timing info (in seconds)
 
-    //Variables specific to distributed DACS and distributed DEE computations
+    // Variables specific to distributed DACS and distributed DEE computations
     PrunedRotamers<Boolean> prunedRot = null;
     boolean useSF = false;
     boolean distrDACS = false;
@@ -255,27 +255,25 @@ public class CommucObj implements Serializable
     CommucObj() {
     }
 
-    public void initConfSeq(int numConfs,int treeLevels){
+    public void initConfSeq(int numConfs, int treeLevels) {
 	confSeq = new ConfInfo[numConfs];
-	for(int j=0; j<numConfs;j++){
+	for (int j = 0; j < numConfs; j++) {
 	    confSeq[j] = new ConfInfo(treeLevels);
 	}
     }
 
-    /*public void setPartitionProperties(int runNum, PartitionMessage p){
-		this.q[runNum] = p.q;
-		this.bestEMin[runNum] = p.bestEMin;
-		this.bestE[runNum]=p.bestE;
-		this.q_Time[runNum]=p.q_Time;
-		this.repeatEW[runNum]=p.repeatEW;
-		this.allPruned[runNum]=p.allPruned;
-		this.searchNumConfsTotal[runNum]=p.searchNumConfsTotal;
-		this.searchNumConfsPrunedByE[runNum]=p.searchNumConfsPrunedByE;
-		this.searchNumConfsPrunedByS[runNum]=p.searchNumConfsPrunedByS;
-		this.searchNumConfsEvaluated[runNum]=p.searchNumConfsEvaluated;
-		this.searchNumConfsLeft[runNum]=p.searchNumConfsLeft;
-		this.searchNumPrunedMinDEE[runNum]=p.searchNumPrunedMinDEE;
-		this.searchBestEnergyFound[runNum]=p.searchBestEnergyFound;
-	}*/
+    /*
+     * public void setPartitionProperties(int runNum, PartitionMessage p){
+     * this.q[runNum] = p.q; this.bestEMin[runNum] = p.bestEMin;
+     * this.bestE[runNum]=p.bestE; this.q_Time[runNum]=p.q_Time;
+     * this.repeatEW[runNum]=p.repeatEW; this.allPruned[runNum]=p.allPruned;
+     * this.searchNumConfsTotal[runNum]=p.searchNumConfsTotal;
+     * this.searchNumConfsPrunedByE[runNum]=p.searchNumConfsPrunedByE;
+     * this.searchNumConfsPrunedByS[runNum]=p.searchNumConfsPrunedByS;
+     * this.searchNumConfsEvaluated[runNum]=p.searchNumConfsEvaluated;
+     * this.searchNumConfsLeft[runNum]=p.searchNumConfsLeft;
+     * this.searchNumPrunedMinDEE[runNum]=p.searchNumPrunedMinDEE;
+     * this.searchBestEnergyFound[runNum]=p.searchBestEnergyFound; }
+     */
 
 }

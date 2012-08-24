@@ -64,17 +64,16 @@ import java.io.PrintStream;
 import java.util.*;
 
 /**
- * This is the main class for the KStar program; essentially just a wrapper for the KSParser class.
+ * This is the main class for the KStar program; essentially just a wrapper for
+ * the KSParser class.
  */
-public class KStar
-{
+public class KStar {
 
-    public static void main (String[] args)
-    {
+    public static void main(String[] args) {
 	KSParser parser = new KSParser();
 	parser.checkMPI(args);
 	System.out.println("KStar Finished.");
 
-    }  // End main()
+    } // End main()
 
 } // end class

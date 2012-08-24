@@ -61,36 +61,36 @@ public class ThreadElement {
     /***** Thread Variables *****/
     BlockingDeque<ThreadMessage> newMessages = null;
     BlockingDeque<ThreadMessage> oldMessages = null;
-    //KSParser[] kstarArray = null;
+    // KSParser[] kstarArray = null;
     int rank = -1;
 
     public ThreadElement(int rank) {
 	// TODO Auto-generated constructor stub
 	this.rank = rank;
-	//kstarArray = ksa;
+	// kstarArray = ksa;
 	newMessages = new LinkedBlockingDeque<ThreadMessage>();
 	oldMessages = new LinkedBlockingDeque<ThreadMessage>();
     }
 
-    public int getRank(){
+    public int getRank() {
 	return rank;
     }
 
-    public int getSize(){
+    public int getSize() {
 	return Runtime.getRuntime().availableProcessors() + 1;
     }
 
-    public ThreadStatus Probe(int source, int tag) throws InterruptedException{
+    public ThreadStatus Probe(int source, int tag) throws InterruptedException {
 	ThreadStatus s = null;
-	while(s == null){
+	while (s == null) {
 	    ThreadMessage t = newMessages.takeFirst();
-	    if((source == -1 || t.source == source) && (tag==-1 || t.tag == tag)){
+	    if ((source == -1 || t.source == source)
+		    && (tag == -1 || t.tag == tag)) {
 		s = new ThreadStatus();
 		s.source = t.source;
-		s.tag    = t.tag;
+		s.tag = t.tag;
 		oldMessages.addFirst(t);
-	    }
-	    else{
+	    } else {
 		oldMessages.addFirst(t);
 	    }
 	}
@@ -100,50 +100,48 @@ public class ThreadElement {
 	return s;
     }
 
-    public ThreadStatus Iprobe(int source, int tag) throws InterruptedException{
+    public ThreadStatus Iprobe(int source, int tag) throws InterruptedException {
 	ThreadStatus s = null;
-	for(ThreadMessage t : newMessages){
-	    if((source == -1 || t.source == source) && (tag==-1 || t.tag == tag)){
+	for (ThreadMessage t : newMessages) {
+	    if ((source == -1 || t.source == source)
+		    && (tag == -1 || t.tag == tag)) {
 		s = new ThreadStatus();
 		s.source = t.source;
-		s.tag    = t.tag;
+		s.tag = t.tag;
 	    }
 	}
 
 	return s;
     }
-
 
     public ThreadStatus Recv(Object buf, int offset, int count, int type,
-	    int source, int tag) throws InterruptedException{
+	    int source, int tag) throws InterruptedException {
 	ThreadStatus s = null;
-	while(s == null){
+	while (s == null) {
 	    ThreadMessage t = newMessages.takeFirst();
-	    if((source == -1 || t.source == source) && (tag==-1 || t.tag == tag)){
+	    if ((source == -1 || t.source == source)
+		    && (tag == -1 || t.tag == tag)) {
 		s = new ThreadStatus();
 		s.source = t.source;
-		s.tag    = t.tag;
-		Object[] objs = (Object[])t.getObj(offset, count);
-		//Need to special case int since it isn't an object
-		if(type == ThreadMessage.INT){
-		    for(int i=0; i<count;i++)
-			((int[])buf)[i] = (Integer)objs[i];
+		s.tag = t.tag;
+		Object[] objs = (Object[]) t.getObj(offset, count);
+		// Need to special case int since it isn't an object
+		if (type == ThreadMessage.INT) {
+		    for (int i = 0; i < count; i++)
+			((int[]) buf)[i] = (Integer) objs[i];
+		} else if (type == ThreadMessage.BOOLEAN) {
+		    for (int i = 0; i < count; i++)
+			((boolean[]) buf)[i] = (Boolean) objs[i];
+		} else if (type == ThreadMessage.FLOAT) {
+		    for (int i = 0; i < count; i++)
+			((float[]) buf)[i] = (Float) objs[i];
+		} else {
+		    for (int i = 0; i < count; i++)
+			((Object[]) buf)[i] = objs[i];
 		}
-		else if(type == ThreadMessage.BOOLEAN){
-		    for(int i=0; i<count;i++)
-			((boolean[])buf)[i] = (Boolean)objs[i];
-		}
-		else if(type == ThreadMessage.FLOAT){
-		    for(int i=0; i<count;i++)
-			((float[])buf)[i] = (Float)objs[i];
-		}
-		else{
-		    for(int i=0; i<count;i++)
-			((Object[])buf)[i] = objs[i];
-		}
-		//((CommucObj[])buf)[0].arpFilenameMin = ((CommucObj[])(t.getObj(offset,count)))[0].arpFilenameMin;
-	    }
-	    else{
+		// ((CommucObj[])buf)[0].arpFilenameMin =
+		// ((CommucObj[])(t.getObj(offset,count)))[0].arpFilenameMin;
+	    } else {
 		oldMessages.addFirst(t);
 	    }
 	}
@@ -153,8 +151,8 @@ public class ThreadElement {
 	return s;
     }
 
-    public void Send(Object buf, int offset, int count, int type,
-	    int dest, int tag) {
+    public void Send(Object buf, int offset, int count, int type, int dest,
+	    int tag) {
 
 	ThreadMessage t = new ThreadMessage(buf, type, rank, tag);
 	t.obj = t.determineObj(buf, type, offset, count);
@@ -168,8 +166,8 @@ public class ThreadElement {
 
     }
 
-    public void resetMessages(){
-	while(!oldMessages.isEmpty()){
+    public void resetMessages() {
+	while (!oldMessages.isEmpty()) {
 	    ThreadMessage t = null;
 	    try {
 		t = oldMessages.takeFirst();
@@ -181,7 +179,7 @@ public class ThreadElement {
 	}
     }
 
-    public void setMessage(ThreadMessage t){
+    public void setMessage(ThreadMessage t) {
 	newMessages.addLast(t);
     }
 

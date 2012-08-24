@@ -65,142 +65,157 @@
  */
 public class PEMHandler {
 
-    PEMHandler(){};
+    PEMHandler() {
+    };
 
-    /* 
+    /*
      * Initialize the pairwise energy matrices: each matrix has 6 dimensions;
-     * The first three dimensions correspond to the residue position, amino acid type, and rotamer identity
-     * 		for the first rotamer in the rotamer pair; the last three dimensions define the second rotamer in
-     * 		the rotamer pair;
-     * The first and fourth dimensions are of size (numInAS+1) if the input system does not have a ligand, or (numInAS+2) otherwise;
-     * 		The (numInAS+1)^th row in the first/fourth dimensions corresponds to the ligand entries (if present);
-     * 		The last row in the first dimension corresponds to the template energy (the last row in the fourth dimension is never used);
-     * The intra-rotamer and rot-shell energies for a given rotamer identity 'r' for amino acid type 'a' at residue position 'p'
-     * 		are stored in the two entries in [p][a][r][p][0][] (since there are no rotamer pairwise energies for rotamers at the 
-     * 		same residue position);
-     * NOTE: the difference between ligPresent and useLig is the following:
-     * 		ligPresent determines if a ligand is present in the input structure;
-     * 		useLig determines if the ligand will be used in the current computation (e.g., useLig will be false for SHL-AS)
+     * The first three dimensions correspond to the residue position, amino acid
+     * type, and rotamer identity for the first rotamer in the rotamer pair; the
+     * last three dimensions define the second rotamer in the rotamer pair; The
+     * first and fourth dimensions are of size (numInAS+1) if the input system
+     * does not have a ligand, or (numInAS+2) otherwise; The (numInAS+1)^th row
+     * in the first/fourth dimensions corresponds to the ligand entries (if
+     * present); The last row in the first dimension corresponds to the template
+     * energy (the last row in the fourth dimension is never used); The
+     * intra-rotamer and rot-shell energies for a given rotamer identity 'r' for
+     * amino acid type 'a' at residue position 'p' are stored in the two entries
+     * in [p][a][r][p][0][] (since there are no rotamer pairwise energies for
+     * rotamers at the same residue position); NOTE: the difference between
+     * ligPresent and useLig is the following: ligPresent determines if a ligand
+     * is present in the input structure; useLig determines if the ligand will
+     * be used in the current computation (e.g., useLig will be false for
+     * SHL-AS)
      */
-    public float [][][][][][] initializePairEMatrix(int numMutable, int resMut[], int[][] strandMut,
-	    RotamerSearch rs, boolean shellRun, boolean intraRun, boolean initAll) {
+    public float[][][][][][] initializePairEMatrix(int numMutable,
+	    int resMut[], int[][] strandMut, RotamerSearch rs,
+	    boolean shellRun, boolean intraRun, boolean initAll) {
 
 	float eMatrix[][][][][][] = null;
-	int numPos = numMutable+1;
-	/*if (ligPresent)
-			numPos++;*/
+	int numPos = numMutable + 1;
+	/*
+	 * if (ligPresent) numPos++;
+	 */
 	eMatrix = new float[numPos][][][][][];
 	int p1 = 0;
-	for (int str1=0; str1<strandMut.length; str1++){
-	    for (int i=0; i<strandMut[str1].length; i++){
+	for (int str1 = 0; str1 < strandMut.length; str1++) {
+	    for (int i = 0; i < strandMut[str1].length; i++) {
 		if (resMut[p1] == 1) {
-		    eMatrix[p1] = new float[rs.strandRot[str1].rl.getNumAAallowed()][][][][];
-		    for (int a1=0; a1<rs.strandRot[str1].getNumAllowable(strandMut[str1][i]); a1++){
-			int curAAind1 = rs.strandRot[str1].getIndexOfNthAllowable(strandMut[str1][i],a1);
-			int numRot1 = rs.strandRot[str1].rl.getNumRotForAAtype(curAAind1);
-			if (numRot1==0) //ALA or GLY
+		    eMatrix[p1] = new float[rs.strandRot[str1].rl
+			    .getNumAAallowed()][][][][];
+		    for (int a1 = 0; a1 < rs.strandRot[str1]
+			    .getNumAllowable(strandMut[str1][i]); a1++) {
+			int curAAind1 = rs.strandRot[str1]
+				.getIndexOfNthAllowable(strandMut[str1][i], a1);
+			int numRot1 = rs.strandRot[str1].rl
+				.getNumRotForAAtype(curAAind1);
+			if (numRot1 == 0) // ALA or GLY
 			    numRot1 = 1;
 			eMatrix[p1][curAAind1] = new float[numRot1][][][];
-			for (int r1=0; r1<numRot1; r1++){
+			for (int r1 = 0; r1 < numRot1; r1++) {
 			    eMatrix[p1][curAAind1][r1] = new float[numPos][][];
-			    int p2=0;
-			    for (int str2=0;str2<strandMut.length;str2++){
-				for (int j=0; j<strandMut[str2].length; j++){
-				    if ((initAll)||((!intraRun)&&(p2!=p1))){
-					eMatrix[p1][curAAind1][r1][p2] = new float[rs.strandRot[str2].rl.getNumAAallowed()][];
-					for (int a2=0; a2<rs.strandRot[str2].getNumAllowable(strandMut[str2][j]); a2++){
-					    int curAAind2 = rs.strandRot[str2].getIndexOfNthAllowable(strandMut[str2][j],a2);
-					    int numRot2 = rs.strandRot[str2].rl.getNumRotForAAtype(curAAind2);
-					    if (numRot2==0) //ALA or GLY
+			    int p2 = 0;
+			    for (int str2 = 0; str2 < strandMut.length; str2++) {
+				for (int j = 0; j < strandMut[str2].length; j++) {
+				    if ((initAll)
+					    || ((!intraRun) && (p2 != p1))) {
+					eMatrix[p1][curAAind1][r1][p2] = new float[rs.strandRot[str2].rl
+						.getNumAAallowed()][];
+					for (int a2 = 0; a2 < rs.strandRot[str2]
+						.getNumAllowable(strandMut[str2][j]); a2++) {
+					    int curAAind2 = rs.strandRot[str2]
+						    .getIndexOfNthAllowable(
+							    strandMut[str2][j],
+							    a2);
+					    int numRot2 = rs.strandRot[str2].rl
+						    .getNumRotForAAtype(curAAind2);
+					    if (numRot2 == 0) // ALA or GLY
 						numRot2 = 1;
 					    eMatrix[p1][curAAind1][r1][p2][curAAind2] = new float[numRot2];
-					    for (int r2=0; r2<numRot2; r2++){
+					    for (int r2 = 0; r2 < numRot2; r2++) {
 						eMatrix[p1][curAAind1][r1][p2][curAAind2][r2] = 0.0f;
 					    }
 					}
 				    }
-				    if (p2==p1) {
-					//Be able to store intra rotamer energy and energy with each strand template
+				    if (p2 == p1) {
+					// Be able to store intra rotamer energy
+					// and energy with each strand template
 					eMatrix[p1][curAAind1][r1][p2] = new float[1][2];
 				    }
 				    p2++;
 				}
 			    }
-			    /*if (useLig){
-							int p2 = numInAS;
-							eMatrix[p1][curAAind1][r1][p2] = new float[numAAallowed][];
-							int curAAind2 = grl.getAARotamerIndex(ligType);
-							int numRot2 = grl.getNumRotamers(ligType);
-							if (numRot2==0) //ALA or GLY
-								numRot2 = 1;
-							eMatrix[p1][curAAind1][r1][p2][curAAind2] = new float[numRot2];
-							for (int r2=0; r2<numRot2; r2++){
-								eMatrix[p1][curAAind1][r1][p2][curAAind2][r2] = 0.0f;
-							}
-						}*/
+			    /*
+			     * if (useLig){ int p2 = numInAS;
+			     * eMatrix[p1][curAAind1][r1][p2] = new
+			     * float[numAAallowed][]; int curAAind2 =
+			     * grl.getAARotamerIndex(ligType); int numRot2 =
+			     * grl.getNumRotamers(ligType); if (numRot2==0)
+			     * //ALA or GLY numRot2 = 1;
+			     * eMatrix[p1][curAAind1][r1][p2][curAAind2] = new
+			     * float[numRot2]; for (int r2=0; r2<numRot2; r2++){
+			     * eMatrix[p1][curAAind1][r1][p2][curAAind2][r2] =
+			     * 0.0f; } }
+			     */
 			}
 		    }
 		}
-		p1++;		
+		p1++;
 	    }
 	}
-	/*if (useLig){ //ligand computation will be performed here
-			int p1 = numInAS;
-			eMatrix[p1] = new float[numAAallowed][][][][];
-			int curAAind1 = grl.getAARotamerIndex(ligType);
-			int numRot1 = grl.getNumRotamers(ligType);
-			if (numRot1==0) //ALA or GLY
-				numRot1 = 1;
-			eMatrix[p1][curAAind1] = new float[numRot1][][][];
-			for (int r1=0; r1<numRot1; r1++){
-				eMatrix[p1][curAAind1][r1] = new float[numPos][][];
-				for (int p2=0; p2<numInAS; p2++){
-					eMatrix[p1][curAAind1][r1][p2] = new float[numAAallowed][];
-					for (int a2=0; a2<rs.sysLR.getNumAllowable(residueMap[p2]); a2++){
-						int curAAind2 = rs.sysLR.getIndexOfNthAllowable(residueMap[p2],a2);
-						int numRot2 = rl.getNumRotForAAtype(curAAind2);
-						if (numRot2==0) //ALA or GLY
-							numRot2 = 1;
-						eMatrix[p1][curAAind1][r1][p2][curAAind2] = new float[numRot2];
-						for (int r2=0; r2<numRot2; r2++){
-							eMatrix[p1][curAAind1][r1][p2][curAAind2][r2] = 0.0f;
-						}
-					}
-				}
-				eMatrix[p1][curAAind1][r1][p1] = new float[1][2];
-			}
-		}*/
-	if (shellRun){
-	    eMatrix[numPos-1] = new float[1][1][1][1][1];
+	/*
+	 * if (useLig){ //ligand computation will be performed here int p1 =
+	 * numInAS; eMatrix[p1] = new float[numAAallowed][][][][]; int curAAind1
+	 * = grl.getAARotamerIndex(ligType); int numRot1 =
+	 * grl.getNumRotamers(ligType); if (numRot1==0) //ALA or GLY numRot1 =
+	 * 1; eMatrix[p1][curAAind1] = new float[numRot1][][][]; for (int r1=0;
+	 * r1<numRot1; r1++){ eMatrix[p1][curAAind1][r1] = new
+	 * float[numPos][][]; for (int p2=0; p2<numInAS; p2++){
+	 * eMatrix[p1][curAAind1][r1][p2] = new float[numAAallowed][]; for (int
+	 * a2=0; a2<rs.sysLR.getNumAllowable(residueMap[p2]); a2++){ int
+	 * curAAind2 = rs.sysLR.getIndexOfNthAllowable(residueMap[p2],a2); int
+	 * numRot2 = rl.getNumRotForAAtype(curAAind2); if (numRot2==0) //ALA or
+	 * GLY numRot2 = 1; eMatrix[p1][curAAind1][r1][p2][curAAind2] = new
+	 * float[numRot2]; for (int r2=0; r2<numRot2; r2++){
+	 * eMatrix[p1][curAAind1][r1][p2][curAAind2][r2] = 0.0f; } } }
+	 * eMatrix[p1][curAAind1][r1][p1] = new float[1][2]; } }
+	 */
+	if (shellRun) {
+	    eMatrix[numPos - 1] = new float[1][1][1][1][1];
 	}
 
 	return eMatrix;
     }
 
+    // Returns a new independent six-dimensional matrix that is a copy of
+    // fromMatrix[][][][][][]
+    public float[][][][][][] copyMultiDimArray(float fromMatrix[][][][][][]) {
 
-    //Returns a new independent six-dimensional matrix that is a copy of fromMatrix[][][][][][]
-    public float [][][][][][] copyMultiDimArray(float fromMatrix[][][][][][]){
-
-	if (fromMatrix==null)
+	if (fromMatrix == null)
 	    return null;
 
 	float toMatrix[][][][][][] = new float[fromMatrix.length][][][][][];
-	for (int p1=0; p1<toMatrix.length; p1++){
-	    if (fromMatrix[p1]!=null){
+	for (int p1 = 0; p1 < toMatrix.length; p1++) {
+	    if (fromMatrix[p1] != null) {
 		toMatrix[p1] = new float[fromMatrix[p1].length][][][][];
-		for (int a1=0; a1<toMatrix[p1].length; a1++){
-		    if (fromMatrix[p1][a1]!=null){
+		for (int a1 = 0; a1 < toMatrix[p1].length; a1++) {
+		    if (fromMatrix[p1][a1] != null) {
 			toMatrix[p1][a1] = new float[fromMatrix[p1][a1].length][][][];
-			for (int r1=0; r1<toMatrix[p1][a1].length; r1++){
-			    if (fromMatrix[p1][a1][r1]!=null){
+			for (int r1 = 0; r1 < toMatrix[p1][a1].length; r1++) {
+			    if (fromMatrix[p1][a1][r1] != null) {
 				toMatrix[p1][a1][r1] = new float[fromMatrix[p1][a1][r1].length][][];
-				for (int p2=0; p2<toMatrix[p1][a1][r1].length; p2++){
-				    if (fromMatrix[p1][a1][r1][p2]!=null){
+				for (int p2 = 0; p2 < toMatrix[p1][a1][r1].length; p2++) {
+				    if (fromMatrix[p1][a1][r1][p2] != null) {
 					toMatrix[p1][a1][r1][p2] = new float[fromMatrix[p1][a1][r1][p2].length][];
-					for (int a2=0; a2<toMatrix[p1][a1][r1][p2].length; a2++){
-					    if (fromMatrix[p1][a1][r1][p2][a2]!=null){
+					for (int a2 = 0; a2 < toMatrix[p1][a1][r1][p2].length; a2++) {
+					    if (fromMatrix[p1][a1][r1][p2][a2] != null) {
 						toMatrix[p1][a1][r1][p2][a2] = new float[fromMatrix[p1][a1][r1][p2][a2].length];
-						System.arraycopy(fromMatrix[p1][a1][r1][p2][a2], 0, toMatrix[p1][a1][r1][p2][a2], 0, fromMatrix[p1][a1][r1][p2][a2].length);
+						System.arraycopy(
+							fromMatrix[p1][a1][r1][p2][a2],
+							0,
+							toMatrix[p1][a1][r1][p2][a2],
+							0,
+							fromMatrix[p1][a1][r1][p2][a2].length);
 					    }
 					}
 				    }
@@ -209,36 +224,41 @@ public class PEMHandler {
 			}
 		    }
 		}
-	    }				
+	    }
 	}
 
 	return toMatrix;
     }
 
-    //Called by slave nodes to generate cObj.compEE[] entries to return to the main node;
-    //The two matrices should have the same structure (i.e., a computed entry in one matrix should also be computed in the other)
-    public SamplingEEntries [] generateCompEE(float minEmatrix[][][][][][], float maxEmatrix[][][][][][]){
+    // Called by slave nodes to generate cObj.compEE[] entries to return to the
+    // main node;
+    // The two matrices should have the same structure (i.e., a computed entry
+    // in one matrix should also be computed in the other)
+    public SamplingEEntries[] generateCompEE(float minEmatrix[][][][][][],
+	    float maxEmatrix[][][][][][]) {
 
-	if (minEmatrix==null || maxEmatrix==null) {
-	    System.out.println("ERROR: cannot generate compEE[] entries from a null PEM matrix.");
+	if (minEmatrix == null || maxEmatrix == null) {
+	    System.out
+		    .println("ERROR: cannot generate compEE[] entries from a null PEM matrix.");
 	    System.exit(1);
 	}
 
 	else {
 	    SamplingEEntries compEE[] = new SamplingEEntries[100];
 	    int curEntry = 0;
-	    for (int p1=0; p1<minEmatrix.length; p1++){
-		if (minEmatrix[p1]!=null){
-		    for (int a1=0; a1<minEmatrix[p1].length; a1++){
-			if (minEmatrix[p1][a1]!=null){
-			    for (int r1=0; r1<minEmatrix[p1][a1].length; r1++){
-				if (minEmatrix[p1][a1][r1]!=null){
-				    for (int p2=0; p2<minEmatrix[p1][a1][r1].length; p2++){
-					if (minEmatrix[p1][a1][r1][p2]!=null){
-					    for (int a2=0; a2<minEmatrix[p1][a1][r1][p2].length; a2++){
-						if (minEmatrix[p1][a1][r1][p2][a2]!=null){
-						    for (int r2=0; r2<minEmatrix[p1][a1][r1][p2][a2].length; r2++){
-							if ( (minEmatrix[p1][a1][r1][p2][a2][r2]!=0.0f) || (maxEmatrix[p1][a1][r1][p2][a2][r2]!=0.0f) ) {
+	    for (int p1 = 0; p1 < minEmatrix.length; p1++) {
+		if (minEmatrix[p1] != null) {
+		    for (int a1 = 0; a1 < minEmatrix[p1].length; a1++) {
+			if (minEmatrix[p1][a1] != null) {
+			    for (int r1 = 0; r1 < minEmatrix[p1][a1].length; r1++) {
+				if (minEmatrix[p1][a1][r1] != null) {
+				    for (int p2 = 0; p2 < minEmatrix[p1][a1][r1].length; p2++) {
+					if (minEmatrix[p1][a1][r1][p2] != null) {
+					    for (int a2 = 0; a2 < minEmatrix[p1][a1][r1][p2].length; a2++) {
+						if (minEmatrix[p1][a1][r1][p2][a2] != null) {
+						    for (int r2 = 0; r2 < minEmatrix[p1][a1][r1][p2][a2].length; r2++) {
+							if ((minEmatrix[p1][a1][r1][p2][a2][r2] != 0.0f)
+								|| (maxEmatrix[p1][a1][r1][p2][a2][r2] != 0.0f)) {
 
 							    compEE[curEntry] = new SamplingEEntries();
 							    compEE[curEntry].i1 = p1;
@@ -252,9 +272,14 @@ public class PEMHandler {
 
 							    curEntry++;
 
-							    if (curEntry>=compEE.length){
-								SamplingEEntries tmp[] = new SamplingEEntries[compEE.length*2];
-								System.arraycopy(compEE, 0, tmp, 0, compEE.length);
+							    if (curEntry >= compEE.length) {
+								SamplingEEntries tmp[] = new SamplingEEntries[compEE.length * 2];
+								System.arraycopy(
+									compEE,
+									0,
+									tmp,
+									0,
+									compEE.length);
 								compEE = tmp;
 							    }
 							}
@@ -267,7 +292,7 @@ public class PEMHandler {
 			    }
 			}
 		    }
-		}				
+		}
 	    }
 
 	    SamplingEEntries tmp[] = new SamplingEEntries[curEntry];

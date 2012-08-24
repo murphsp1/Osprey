@@ -63,12 +63,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**
- * Handles the data for a single mutation sequence. Contains the amino acid identities for the given sequence
- * and can contain the computed score. Implements a method for comparing two sequences that is used for sorting
- * all sequences with respect to different criteria.
+ * Handles the data for a single mutation sequence. Contains the amino acid
+ * identities for the given sequence and can contain the computed score.
+ * Implements a method for comparing two sequences that is used for sorting all
+ * sequences with respect to different criteria.
  */
-public class OneMutation implements RyanComparable, Comparable
-{
+public class OneMutation implements RyanComparable, Comparable {
 
     int mutNum = -1;
     BigDecimal score = new BigDecimal("0.0");
@@ -77,59 +77,58 @@ public class OneMutation implements RyanComparable, Comparable
     int resMut[] = null;
     Index3 index[] = null;
     String flagMutType = null;
-    BigInteger numConfUB = null; //num conformations for the unbound sequence
-    BigInteger numConfB = null; //num conformations for the bound sequence
+    BigInteger numConfUB = null; // num conformations for the unbound sequence
+    BigInteger numConfB = null; // num conformations for the bound sequence
 
-    private boolean sortScores = false; //if true, then sort by score (default is false; should only be set using the method below)
+    private boolean sortScores = false; // if true, then sort by score (default
+					// is false; should only be set using
+					// the method below)
 
     OneMutation() {
     }
 
-    /*public int compareTo(Object otherObject) {
-		OneMutation mut = (OneMutation)otherObject;
-		if (score > mut.score) return -1;
-		if (score < mut.score) return 1;
-		return 0;
-	}*/
+    /*
+     * public int compareTo(Object otherObject) { OneMutation mut =
+     * (OneMutation)otherObject; if (score > mut.score) return -1; if (score <
+     * mut.score) return 1; return 0; }
+     */
 
-    public int compareTo(Object otherObject){
-	OneMutation mut = (OneMutation)otherObject;
+    public int compareTo(Object otherObject) {
+	OneMutation mut = (OneMutation) otherObject;
 	if (!sortScores) {
 	    String seq1 = "";
 	    String seq2 = "";
-	    if (resTypes!=null){
-		for (int i=0; i<resTypes.length; i++){
+	    if (resTypes != null) {
+		for (int i = 0; i < resTypes.length; i++) {
 		    seq1 += resTypes[i];
 		    seq2 += mut.resTypes[i];
 		}
-	    }
-	    else {
-		for (int i=0; i<resMut.length; i++){
+	    } else {
+		for (int i = 0; i < resMut.length; i++) {
 		    seq1 += resMut[i];
 		    seq2 += mut.resMut[i];
 		}
 	    }
 	    return (seq1.compareTo(seq2));
-	}
-	else {// (sortScores==true)
+	} else {// (sortScores==true)
 	    return score.compareTo(mut.score);
 	}
 
     }
 
-    //Determines if entries should be sorted by their scores
-    public void setSortScores(boolean ss){
+    // Determines if entries should be sorted by their scores
+    public void setSortScores(boolean ss) {
 	sortScores = ss;
     }
 
     // Returns true if the passed mutation sequence and this
-    //  mutation sequence are the same. Otherwise returns 0.
+    // mutation sequence are the same. Otherwise returns 0.
     public boolean isSame(String anotherMutation[]) {
-	for(int i=0;i<anotherMutation.length;i++) {
+	for (int i = 0; i < anotherMutation.length; i++) {
 	    if (!anotherMutation[i].equalsIgnoreCase(resTypes[i]))
-		return(false);
+		return (false);
 	}
-	return(true);
-    }	
+	return (true);
+    }
 
 }

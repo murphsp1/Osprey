@@ -88,19 +88,22 @@ class SaveMolecule {
 
     PrintStream pw;
 
-
-    // Saves molecule m (atom[][] coordinates, not actualCoordinates[]) to the printstream pw. Params include
-    //  comment: (string) a one line comment for header
-    //  printSegID: (boolean) print atom seg ids
-    //  showConnect: (boolean) add connect terms after atom entries
-    SaveMolecule (Molecule inM, PrintStream pw, Hashtable params) throws Exception {
+    // Saves molecule m (atom[][] coordinates, not actualCoordinates[]) to the
+    // printstream pw. Params include
+    // comment: (string) a one line comment for header
+    // printSegID: (boolean) print atom seg ids
+    // showConnect: (boolean) add connect terms after atom entries
+    SaveMolecule(Molecule inM, PrintStream pw, Hashtable params)
+	    throws Exception {
 	Molecule m = inM;
 	inM = null;
-	m.resolveCoordinates(); //copy from actualCoordinates to atom coordinates
-	DoSaveMolecule(m,pw,params);
+	m.resolveCoordinates(); // copy from actualCoordinates to atom
+				// coordinates
+	DoSaveMolecule(m, pw, params);
     }
 
-    private void DoSaveMolecule (Molecule m, PrintStream pw, Hashtable params) throws Exception {
+    private void DoSaveMolecule(Molecule m, PrintStream pw, Hashtable params)
+	    throws Exception {
 	this.pw = pw;
 	int atomCounter = 1;
 	int residueCounter = 0;
@@ -113,8 +116,10 @@ class SaveMolecule {
 
 	// Pull out parameters
 	String comment = (String) params.get("comment");
-	boolean printSegID = ((Boolean) params.get("printSegID")).booleanValue();
-	boolean showConnect = ((Boolean) params.get("showConnect")).booleanValue();
+	boolean printSegID = ((Boolean) params.get("printSegID"))
+		.booleanValue();
+	boolean showConnect = ((Boolean) params.get("showConnect"))
+		.booleanValue();
 	float energy = ((Float) params.get("energy")).floatValue();
 
 	m.resolveCoordinates();
@@ -126,151 +131,163 @@ class SaveMolecule {
 	String tmpStg;
 	Integer tmpInt;
 	int tmpLen;
-	for(int q=0; q<80; q++)  // clear the array
-	    tmpChr[q]=' ';
+	for (int q = 0; q < 80; q++)
+	    // clear the array
+	    tmpChr[q] = ' ';
 
-	for(int i=0; i<m.numberOfStrands; i++){
+	for (int i = 0; i < m.numberOfStrands; i++) {
 	    Strand strand = m.strand[i];
 	    if (strand.numberOfAtoms == 0)
 		continue;
 
-	    if (i>0)
+	    if (i > 0)
 		pw.println("TER");
 
 	    // copy over the one character strand identifier
 	    tmpStg = strand.name.toUpperCase();
 	    tmpLen = tmpStg.length();
 	    if (tmpLen != 0)
-		tmpStg.getChars(0,1,tmpChr,21);
+		tmpStg.getChars(0, 1, tmpChr, 21);
 	    else
 		tmpChr[21] = ' ';
 
 	    residueCounter = 0;
 
-	    for(int j=0; j<strand.numberOfResidues; j++){
+	    for (int j = 0; j < strand.numberOfResidues; j++) {
 		Residue residue = strand.residue[j];
 		if (residue.numberOfAtoms == 0)
 		    continue;
 		residueCounter++;
 
 		tmpStg = residue.name.toUpperCase();
-		tmpLen = 3-tmpStg.length();
+		tmpLen = 3 - tmpStg.length();
 		if (tmpLen <= 0)
-		    tmpStg.getChars(0,3,tmpChr,17);
+		    tmpStg.getChars(0, 3, tmpChr, 17);
 		else {
 		    // from 17-19 (zero based)
-		    tmpStg.getChars(0,tmpStg.length(),tmpChr,17+tmpLen);
-		    for(int q=tmpStg.length();q<3;q++)  // add whitespace on left
-			tmpChr[19-q]=' ';
+		    tmpStg.getChars(0, tmpStg.length(), tmpChr, 17 + tmpLen);
+		    for (int q = tmpStg.length(); q < 3; q++)
+			// add whitespace on left
+			tmpChr[19 - q] = ' ';
 		}
 		tmpInt = new Integer(residue.getResNumber());
 		tmpStg = tmpInt.toString();
-		tmpLen = 4-tmpStg.length();
+		tmpLen = 4 - tmpStg.length();
 		if (tmpLen <= 0)
-		    tmpStg.getChars(0,4,tmpChr,22);
+		    tmpStg.getChars(0, 4, tmpChr, 22);
 		else {
 		    // from 22-25 (zero based)
-		    tmpStg.getChars(0,tmpStg.length(),tmpChr,22+tmpLen);
-		    for(int q=tmpStg.length();q<4;q++)  // add whitespace on left
-			tmpChr[25-q]=' ';
+		    tmpStg.getChars(0, tmpStg.length(), tmpChr, 22 + tmpLen);
+		    for (int q = tmpStg.length(); q < 4; q++)
+			// add whitespace on left
+			tmpChr[25 - q] = ' ';
 		}
 
 		// If the residue number decreases in the middle
-		//  of a strand change the strand name to "R"
-		//				if(tmpInt.intValue() < prevResNum){
-		//					tmpChr[21] = 'R';
-		//				}
+		// of a strand change the strand name to "R"
+		// if(tmpInt.intValue() < prevResNum){
+		// tmpChr[21] = 'R';
+		// }
 		prevResNum = tmpInt.intValue();
 
-		for(int k=0; k<residue.numberOfAtoms; k++){
+		for (int k = 0; k < residue.numberOfAtoms; k++) {
 		    Atom atom = residue.atom[k];
 		    tmpStg = "ATOM  ";
-		    tmpStg.getChars(0,6,tmpChr,0);  // Copy over the ATOM term
+		    tmpStg.getChars(0, 6, tmpChr, 0); // Copy over the ATOM term
 		    tmpStg = "1.00";
-		    tmpStg.getChars(0,4,tmpChr,56); // Make the occupancy 1.00
+		    tmpStg.getChars(0, 4, tmpChr, 56); // Make the occupancy
+						       // 1.00
 		    tmpStg = "0.00";
-		    tmpStg.getChars(0,4,tmpChr,62); // and the temp factor 0.0
+		    tmpStg.getChars(0, 4, tmpChr, 62); // and the temp factor
+						       // 0.0
 
 		    tmpInt = new Integer(atomCounter);
 		    tmpStg = tmpInt.toString();
-		    tmpLen = 5-tmpStg.length();
+		    tmpLen = 5 - tmpStg.length();
 		    if (tmpLen <= 0)
-			tmpStg.getChars(0,5,tmpChr,6);
+			tmpStg.getChars(0, 5, tmpChr, 6);
 		    else {
 			// from 6-10 (zero based)
-			tmpStg.getChars(0,tmpStg.length(),tmpChr,6+tmpLen);
-			for(int q=tmpStg.length();q<5;q++)  // add whitespace on left
-			    tmpChr[10-q]=' ';
+			tmpStg.getChars(0, tmpStg.length(), tmpChr, 6 + tmpLen);
+			for (int q = tmpStg.length(); q < 5; q++)
+			    // add whitespace on left
+			    tmpChr[10 - q] = ' ';
 		    }
 		    atom.modelAtomNumber = atomCounter++;
 
 		    // writing the atom name is a little fuzzy, although the
-		    //  atom name is allocated columns 12-15(zero based), rasmol
-		    //  likes and other people essentially start with column 13
-		    //  leaving column 12 blank. So we only allow 3 characters for
-		    //  the atom name and it should be left justified
-		    //  unless the first character is a number in which case we
-		    //  start with column 12
+		    // atom name is allocated columns 12-15(zero based), rasmol
+		    // likes and other people essentially start with column 13
+		    // leaving column 12 blank. So we only allow 3 characters
+		    // for
+		    // the atom name and it should be left justified
+		    // unless the first character is a number in which case we
+		    // start with column 12
 		    // there are also exceptions when the atom has a two letter
-		    //  element code
+		    // element code
 
 		    tmpStg = getAtomField(atom);
-		    tmpStg.getChars(0,4,tmpChr,12);
+		    tmpStg.getChars(0, 4, tmpChr, 12);
 
 		    // Write the x coordinate
 		    tmpStg = coordinate(atom.coord[0]);
-		    tmpLen = 8-tmpStg.length();
+		    tmpLen = 8 - tmpStg.length();
 		    if (tmpLen < 0) {
-			System.out.println("ERROR: coordinate exceeds pdb format size");
-			tmpStg.getChars(0,8,tmpChr,30);
-		    }
-		    else {
+			System.out
+				.println("ERROR: coordinate exceeds pdb format size");
+			tmpStg.getChars(0, 8, tmpChr, 30);
+		    } else {
 			// from 30-37 (zero based)
-			tmpStg.getChars(0,tmpStg.length(),tmpChr,30+tmpLen);
-			for(int q=tmpStg.length();q<8;q++)  // add whitespace on left
-			    tmpChr[37-q]=' ';
+			tmpStg.getChars(0, tmpStg.length(), tmpChr, 30 + tmpLen);
+			for (int q = tmpStg.length(); q < 8; q++)
+			    // add whitespace on left
+			    tmpChr[37 - q] = ' ';
 		    }
 
 		    // Write the y coordinate
 		    tmpStg = coordinate(atom.coord[1]);
-		    tmpLen = 8-tmpStg.length();
+		    tmpLen = 8 - tmpStg.length();
 		    if (tmpLen < 0) {
-			System.out.println("ERROR: coordinate exceeds pdb format size");
-			tmpStg.getChars(0,8,tmpChr,38);
-		    }
-		    else {
+			System.out
+				.println("ERROR: coordinate exceeds pdb format size");
+			tmpStg.getChars(0, 8, tmpChr, 38);
+		    } else {
 			// from 38-45 (zero based)
-			tmpStg.getChars(0,tmpStg.length(),tmpChr,38+tmpLen);
-			for(int q=tmpStg.length();q<8;q++)  // add whitespace on left
-			    tmpChr[45-q]=' ';
+			tmpStg.getChars(0, tmpStg.length(), tmpChr, 38 + tmpLen);
+			for (int q = tmpStg.length(); q < 8; q++)
+			    // add whitespace on left
+			    tmpChr[45 - q] = ' ';
 		    }
 
 		    // Write the z coordinate
 		    tmpStg = coordinate(atom.coord[2]);
-		    tmpLen = 8-tmpStg.length();
+		    tmpLen = 8 - tmpStg.length();
 		    if (tmpLen < 0) {
-			System.out.println("ERROR: coordinate exceeds pdb format size");
-			tmpStg.getChars(0,8,tmpChr,46);
-		    }
-		    else {
+			System.out
+				.println("ERROR: coordinate exceeds pdb format size");
+			tmpStg.getChars(0, 8, tmpChr, 46);
+		    } else {
 			// from 46-53 (zero based)
-			tmpStg.getChars(0,tmpStg.length(),tmpChr,46+tmpLen);
-			for(int q=tmpStg.length();q<8;q++)  // add whitespace on left
-			    tmpChr[53-q]=' ';
+			tmpStg.getChars(0, tmpStg.length(), tmpChr, 46 + tmpLen);
+			for (int q = tmpStg.length(); q < 8; q++)
+			    // add whitespace on left
+			    tmpChr[53 - q] = ' ';
 		    }
 		    if (printSegID) {
 			tmpStg = atom.segID;
-			tmpLen = 4-tmpStg.length();
-			tmpStg.getChars(0,1,tmpChr,21); // Make the chain identifier the first segID char
+			tmpLen = 4 - tmpStg.length();
+			tmpStg.getChars(0, 1, tmpChr, 21); // Make the chain
+							   // identifier the
+							   // first segID char
 			if (tmpLen < 0) {
-			    System.out.println("ERROR: segment id exceeds pdb format size");
-			    tmpStg.getChars(0,4,tmpChr,72);
-			}
-			else {
+			    System.out
+				    .println("ERROR: segment id exceeds pdb format size");
+			    tmpStg.getChars(0, 4, tmpChr, 72);
+			} else {
 			    // from 72-75 (zero based)
-			    tmpStg.getChars(0,tmpStg.length(),tmpChr,72);
-			    for(int q=(72+tmpStg.length());q<76;q++) {
-				tmpChr[q]=' ';
+			    tmpStg.getChars(0, tmpStg.length(), tmpChr, 72);
+			    for (int q = (72 + tmpStg.length()); q < 76; q++) {
+				tmpChr[q] = ' ';
 			    }
 			}
 		    }
@@ -281,14 +298,14 @@ class SaveMolecule {
 	}
 
 	if (showConnect) {
-	    for (int i=0; i<m.numberOfAtoms; i++){
+	    for (int i = 0; i < m.numberOfAtoms; i++) {
 		int numberOfConnections = m.connected[i][0];
 		if (numberOfConnections > 0)
 		    pw.print("CONECT");
-		else 
+		else
 		    continue;
-		printAtom(m.atom[ i ].modelAtomNumber);	
-		for(int j=1; j<=numberOfConnections; j++){
+		printAtom(m.atom[i].modelAtomNumber);
+		for (int j = 1; j <= numberOfConnections; j++) {
 		    int bondedToAtomNumber = m.connected[i][j];
 		    Atom bondedToAtom = m.atom[bondedToAtomNumber];
 		    printAtom(bondedToAtom.modelAtomNumber);
@@ -299,11 +316,11 @@ class SaveMolecule {
 	pw.println("END");
     }
 
-    private void printAtom(int atomNumber){
+    private void printAtom(int atomNumber) {
 	if (atomNumber < 10)
-	    pw.print("    " + atomNumber );
+	    pw.print("    " + atomNumber);
 	else if (atomNumber < 100)
-	    pw.print("   " + atomNumber );
+	    pw.print("   " + atomNumber);
 	else if (atomNumber < 1000)
 	    pw.print("  " + atomNumber);
 	else if (atomNumber < 10000)
@@ -312,21 +329,20 @@ class SaveMolecule {
 	    pw.print(atomNumber);
     }
 
-    private String coordinate(float coord){
-	if((coord<0.001) && (coord>-0.001))
+    private String coordinate(float coord) {
+	if ((coord < 0.001) && (coord > -0.001))
 	    coord = 0.0f;
 	String coordString = String.valueOf(coord);
 	String intPart = " ";
 	String floatPart = " ";
 	String returnString = null;
 	int radix = coordString.indexOf(".");
-	if (radix != -1){
+	if (radix != -1) {
 	    intPart = coordString.substring(0, radix);
 	    if (radix != coordString.length())
-		floatPart = coordString.substring(radix+1);
-	}
-	else 
-	    return(coordString);
+		floatPart = coordString.substring(radix + 1);
+	} else
+	    return (coordString);
 	if (intPart.length() == 1)
 	    returnString = "   " + intPart;
 	else if (intPart.length() == 2)
@@ -346,37 +362,35 @@ class SaveMolecule {
 	    returnString += floatPart;
 	else if (floatPart.length() > 3)
 	    returnString += floatPart.substring(0, 3);
-	return(returnString);
+	return (returnString);
     }
 
-    //Returns the atom name field
-    private String getAtomField(Atom at){
-	if(at.elementType.length()==1) {
+    // Returns the atom name field
+    private String getAtomField(Atom at) {
+	if (at.elementType.length() == 1) {
 	    if (at.name.length() == 1)
-		return(" " + at.name + "   ");
-	    else if (at.name.length() == 2){
-		if ( (at.name.charAt(0)>='0') && (at.name.charAt(0)<='9') )
-		    return(at.name + "   ");
+		return (" " + at.name + "   ");
+	    else if (at.name.length() == 2) {
+		if ((at.name.charAt(0) >= '0') && (at.name.charAt(0) <= '9'))
+		    return (at.name + "   ");
 		else
-		    return(" " + at.name + "  ");
-	    }
-	    else if (at.name.length() == 3){
-		if ( (at.name.charAt(0)>='0') && (at.name.charAt(0)<='9') )
-		    return(at.name + "  ");
+		    return (" " + at.name + "  ");
+	    } else if (at.name.length() == 3) {
+		if ((at.name.charAt(0) >= '0') && (at.name.charAt(0) <= '9'))
+		    return (at.name + "  ");
 		else
-		    return(" " + at.name + " ");
-	    }
-	    else // (at.name.length() > 3)
-		return(at.name.substring(0, 4) + " ");
-	}
-	else
-	{
+		    return (" " + at.name + " ");
+	    } else
+		// (at.name.length() > 3)
+		return (at.name.substring(0, 4) + " ");
+	} else {
 	    if (at.name.length() == 2)
-		return(at.name + "   ");
+		return (at.name + "   ");
 	    else if (at.name.length() == 3)
-		return(at.name + "  ");
-	    else // (at.name.length() > 3)
-		return(at.name.substring(0, 4) + " ");
+		return (at.name + "  ");
+	    else
+		// (at.name.length() > 3)
+		return (at.name.substring(0, 4) + " ");
 	}
     }
 }
