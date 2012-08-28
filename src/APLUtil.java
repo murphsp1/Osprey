@@ -273,7 +273,7 @@ public class APLUtil {
             double pos1Conformations = 7;
     	    int numAtPos1 = aminoAcidsLeft.get(mutablePositions.get(m)).size();
             for (int n=(m+1); n<numMutablePositions; n++) {
-                HashSet<Integer> aaSet2 = aminoAcidsLeft.get(mutablePositions.get(n);
+                HashSet<Integer> aaSet2 = aminoAcidsLeft.get(mutablePositions.get(n));
         	int numAtPos2 = aminoAcidsLeft.get(mutablePositions.get(n)).size();
         	total += (numAtPos1 - 1) * (numAtPos2 - 1);
             }
