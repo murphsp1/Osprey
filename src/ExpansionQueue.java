@@ -1,5 +1,7 @@
 import java.util.concurrent.PriorityBlockingQueue;
 
+import com.google.common.collect.MinMaxPriorityQueue;
+
 /*
  This file is part of OSPREY.
 
@@ -67,7 +69,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  */
 public class ExpansionQueue {
 
-    private PriorityBlockingQueue<QueueNode> thequeue;
+    private MinMaxPriorityQueue<QueueNode> thequeue;
 
     // a pointer to the first node in the expansion list
     public QueueNode curFront;
@@ -83,8 +85,8 @@ public class ExpansionQueue {
 	curFront = null;
 	numNodes = 0;
 
-	thequeue = new PriorityBlockingQueue<QueueNode>(50000);
-
+	// 5,000,000 is about 1 GB of memory
+	thequeue = MinMaxPriorityQueue.maximumSize(5000000).create();
     }
 
     /*
