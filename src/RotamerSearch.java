@@ -3287,9 +3287,9 @@ public class RotamerSearch implements Serializable {
 		    + printBigNum(partial_q, 3) + " rho*qStar: "
 		    + printBigNum(partial_q.multiply(new BigDecimal(ro)), 3));
 
-	    if (minELowerBound > curThreshold)
-		return;
-	    else if (useMaxKSconfs
+	    //if (minELowerBound > curThreshold)
+		//return;
+	    /* else */ if (useMaxKSconfs
 		    && numConfsEvaluated.compareTo(maxKSconfs) > 0)
 		return;
 
