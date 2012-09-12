@@ -416,7 +416,9 @@ public class MSAStar {
 
     // Updates and prints the state of the queue
     private void printState(QueueNode expNode) {
-
+	
+	return;
+/*
 	numExpanded++;
 	if (expNode.level + 1 > topL) {
 	    topL = expNode.level + 1;
@@ -431,6 +433,7 @@ public class MSAStar {
 		System.out.print(expNode.confSoFar[i] + " ");
 	    System.out.println(topL + " " + numTopL);
 	}
+*/
     }
 
     // ////////////////////////////////////////////////////////////////////////
