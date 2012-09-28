@@ -179,7 +179,7 @@ public class MSAStar {
     public int[] doAStar(boolean run1, int numMaxChanges, int nodesDefault[],
 	    boolean prunedNodes[], StrandRotamers strandRot[],
 	    String strandDefault[][], int numForRes[], int strandMut[][],
-	    boolean singleSeq, int mutRes2Strand[], int mutRes2MutIndex[]) {
+	    boolean singleSeq, int mutRes2Strand[], int mutRes2MutIndex[]) throws InterruptedException {
 
 	int curLevelNum = 0;
 	float hScore;
@@ -187,6 +187,10 @@ public class MSAStar {
 	float fScore;
 	QueueNode expNode = null;
 	QueueNode newNode = null;
+	
+	long timeStart = System.currentTimeMillis();
+	// first number is minutes
+	long timeLimit = 10 * 60 * 1000;
 
 	for (int i = 0; i < numTreeLevels; i++) { // initialize for this run
 	    curConf[i] = -1;
@@ -234,6 +238,10 @@ public class MSAStar {
 	 * from the queue
 	 */
 	while (!done) {
+	    
+	    if ((System.currentTimeMillis() - timeStart) > timeLimit) {
+		throw new InterruptedException("A* time out");
+	    }
 
 	    if (!run1) {
 		for (int i = 0; i < numTreeLevels; i++)

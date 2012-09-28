@@ -3100,9 +3100,15 @@ public class RotamerSearch implements Serializable {
 
 	while (numConfsLeft.compareTo(BigInteger.ZERO) == 1) {
 
-	    curConf = AStarSearch.doAStar(run1, numMutable, null,
+	    try {
+		curConf = AStarSearch.doAStar(run1, numMutable, null,
 		    eliminatedRotAtPosRed, strandRot, null, numRotForRes,
-		    strandMut, true, mutRes2Strand, mutRes2StrandMutIndex); // the
+		    strandMut, true, mutRes2Strand, mutRes2StrandMutIndex);
+	    } catch (InterruptedException e1) {
+		// TODO Auto-generated catch block
+		System.out.println("*** Quitting early: " + e1.getMessage());
+		return;
+	    } // the
 									    // current
 									    // rotamer
 									    // sequence);
@@ -3286,7 +3292,7 @@ public class RotamerSearch implements Serializable {
 	    System.out.println("pStar: " + printBigNum(pStar, 3) + " qStar: "
 		    + printBigNum(partial_q, 3) + " rho*qStar: "
 		    + printBigNum(partial_q.multiply(new BigDecimal(ro)), 3));
-
+	    
 	    //if (minELowerBound > curThreshold)
 		//return;
 	    /* else */ if (useMaxKSconfs
@@ -3368,6 +3374,7 @@ public class RotamerSearch implements Serializable {
 		System.out.println("energy: " + energy);
 	    }
 	}
+	
 	if ((numConfsLeft.equals(BigInteger.ZERO))
 		&& (!k_const.equals(BigInteger.ZERO))) { // no conformations
 							 // remaining,
@@ -4466,10 +4473,15 @@ public class RotamerSearch implements Serializable {
 	    // curLigAANum = -1;
 	    // curLigRotNum = -1;
 
-	    curConf = MSAStarSearch.doAStar(run1, numMut, AAdefault,
+	    try {
+		curConf = MSAStarSearch.doAStar(run1, numMut, AAdefault,
 		    eliminatedRotAtPosRed, strandRot, strandDefault,
 		    numRotForRes, strandMut, false, mutRes2Strand,
-		    mutRes2StrandMutIndex); // the current rotamer sequence
+		    mutRes2StrandMutIndex);
+	    } catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	    } // the current rotamer sequence
 
 	    System.out.println("confNum: "
 		    + (numConfsEvaluated.add(BigInteger.ONE)));
