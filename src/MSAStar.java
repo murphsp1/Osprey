@@ -110,8 +110,6 @@ public class MSAStar {
 	int topL = 0;
 	int numTopL = 0;
 
-	// the steric check filter (*only* for single-sequence A*)
-	StericCheck stericF = null;
 
 	// constructor
 	/*
@@ -153,8 +151,6 @@ public class MSAStar {
 		for (int i = 0; i < numTreeLevels; i++) {
 			curConf[i] = -1;
 		}
-
-		stericF = stF;
 	}
 
 	// Find the lowest-energy conformation and return an array with the number
@@ -205,10 +201,6 @@ public class MSAStar {
 			// compute their f(n) score and add to the expansion queue
 			for (int curNode = 0; curNode < numNodesForLevel[0]; curNode++) {
 
-				// if
-				// ((stericF==null)||(stericF.checkAllowedSteric(0,curConf,curNode))){//do
-				// not do a steric check if backbone minimization
-
 				curConf[0] = curNode;// this is the only node in the current
 				// conformation
 
@@ -222,11 +214,13 @@ public class MSAStar {
 
 				// insert in the expansion list
 				curExpansion.insert(newNode);
-				// }
 			}
-			if (curConf[0] == -1) // no sterically allowed nodes at the first
+
+			if (curConf[0] == -1) {
+				// no sterically allowed nodes at the first
 				// residue, so no possible conformations
 				return curConf;
+			}
 		}
 
 		boolean done = false;
@@ -323,23 +317,9 @@ public class MSAStar {
 									strandMut, nodesDefault, numChanges,
 									mutRes2Strand, mutRes2MutIndex);
 
-						if ((singleSeq) || (numChanges2 <= numMaxChanges)) { // continue
-							// only
-							// if
-							// (singleSeq)
-							// or
-							// (num
-							// differences
-							// does
-							// not
-							// exceed
-							// the
-							// max
-							// one)
-
-							// if
-							// ((stericF==null)||(stericF.checkAllowedSteric(curLevelNum,curConf,curNode))){//do
-							// not do a steric check if backbone minimization
+						if ((singleSeq) || (numChanges2 <= numMaxChanges)) { 
+							// continue only if (singleSeq) or (num differences does
+							// not exceed the max one)
 
 							curConf[curLevelNum] = curNode;// add curNode to the
 							// conformation so
@@ -357,7 +337,6 @@ public class MSAStar {
 
 							// insert in the expansion list
 							curExpansion.insert(newNode);
-							// }
 						}
 					}
 
