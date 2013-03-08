@@ -9,6 +9,13 @@ public class OspreyEnergyCalculator implements EnergyCalculator {
 	protected int numTreeLevels;
 	private int numNodesForLevel[] = null;
 
+	/**
+	 * Initialize the default Osprey energy calculator
+	 * 
+	 * @param numTreeLevels How deep is the tree
+	 * @param numRotForRes  How many branches at each level of the tree
+	 * @param arpMatrixRed  Pairwise energy matrix (with possibly funky index scheme based on pruning)
+	 */
 	public OspreyEnergyCalculator(int numTreeLevels, int numRotForRes[], float arpMatrixRed[][]) {
 		
 		this.numTreeLevels = numTreeLevels;
@@ -39,6 +46,13 @@ public class OspreyEnergyCalculator implements EnergyCalculator {
 		return computeG(conformation, treeLevel) + computeH(conformation, treeLevel);
 	}
 
+	/**
+	 * Energy value for branches that we have selected
+	 * 
+	 * @param conformation
+	 * @param treeLevel
+	 * @return
+	 */
 	protected float computeG(int[] conformation, int treeLevel) {
 		float gn = 0.0f;
 		float minShellResE;
@@ -58,6 +72,13 @@ public class OspreyEnergyCalculator implements EnergyCalculator {
 		return gn;
 	}
 
+	/**
+	 * Estimate energy for the rest of the tree
+	 * 
+	 * @param conformation
+	 * @param treeLevel
+	 * @return
+	 */
 	protected float computeH(int[] conformation, int treeLevel) {
 
 		float hn = 0.0f;
