@@ -3092,7 +3092,7 @@ public class RotamerSearch implements Serializable {
 		    mutRes2StrandMutIndex);
 	}
 
-	MSAStar AStarSearch = new MSAStar(treeLevels, numRotForResNonPruned,
+	AStarWrapper AStarSearch = new AStarWrapper(treeLevels, numRotForResNonPruned,
 		arpMatrixRed, stericF);
 
 	curConf = new int[treeLevels]; // the rotamer sequence

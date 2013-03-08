@@ -12,7 +12,7 @@ public class AStarWrapper {
 
 	protected ExpansionQueue curExpansion;
 	
-	public AStarWrapper(int treeLevels, int numRotForRes[], float arpMatrixRed[][]) {
+	public AStarWrapper(int treeLevels, int numRotForRes[], float arpMatrixRed[][], StericCheck stF) {
 		calculator = new OspreyEnergyCalculator(treeLevels, numRotForRes, arpMatrixRed);
 
 		numTreeLevels = treeLevels;
