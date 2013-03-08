@@ -65,7 +65,7 @@ public class AStarWrapper {
 			curLevelNum++;
 			for (int curNode = 0; curNode < numNodesForLevel[curLevelNum]; curNode++) {
 				curConf[curLevelNum] = curNode;
-				float score = calculator.getEnergy(curConf, 0);
+				float score = calculator.getEnergy(curConf, curLevelNum);
 				QueueNode node = new QueueNode(curNode, curLevelNum, curConf, score);
 				curExpansion.insert(node);
 			}
@@ -90,7 +90,6 @@ public class AStarWrapper {
 
 			// compute f for the current node
 			float score = calculator.getEnergy(curConf, 0);
-			System.out.println(score);
 
 			QueueNode node = new QueueNode(curNode, 0, curConf, score);
 			curExpansion.insert(node);
