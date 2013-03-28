@@ -145,8 +145,9 @@ public class RotamerSearch implements Serializable {
 			       // residue have been pruned by MinDEE;
     // sends this information to the master node in the mutation search
 
-    final float stericE = (float) Math.pow(10, 38); // the energy stored for an
-						    // unallowed steric
+    //final float stericE = (float) Math.pow(10, 38);
+    final float stericE = (float) 1.00000000000000000000000000000000000000f; //.0f;
+    // the energy stored for an unallowed steric
     private double Ec_const = stericE; // the minimum lower energy bound for a
 				       // pruned conformation
     private double boundForPartition = stericE; // a lower bound on the
@@ -1452,9 +1453,12 @@ public class RotamerSearch implements Serializable {
 
 	float curEnergy = 0.0f;
 	float beginE = 0.0f;
-	float minEnergy = (float) Math.pow(10, 30);
-	float maxEnergy = -(float) Math.pow(10, 30);
+	//float minEnergy = (float) Math.pow(10, 30);
+	float minEnergy = 1000000000000000000000000000000.0f;
+	//float maxEnergy = -(float) Math.pow(10, 30);
+	float maxEnergy = 1000000000000000000000000000000.0f;
 
+	
 	// Compute min and max energies
 	if (doMinimization) {
 
@@ -2063,8 +2067,10 @@ public class RotamerSearch implements Serializable {
 	// a96ff.initializeCalculation();
 	// a96ff.setNBEval(hElect,hVDW);
 
-	float minEnergy = (float) Math.pow(10, 30);
-	float maxEnergy = -(float) Math.pow(10, 30);
+	//float minEnergy = (float) Math.pow(10, 30);
+	float minEnergy = 1000000000000000000000000000000.0f;
+	//float maxEnergy = -(float) Math.pow(10, 30);
+	float maxEnergy = -1000000000000000000000000000000.0f;
 
 	float curEnergy = 0.0f;
 	float beginE = 0.0f;
@@ -2166,8 +2172,12 @@ public class RotamerSearch implements Serializable {
 	a96ff.initializeCalculation();
 	a96ff.setNBEval(hElect, hVDW);
 
-	float minEnergy = (float) Math.pow(10, 30);
-	float maxEnergy = -(float) Math.pow(10, 30);
+	//float minEnergy = (float) Math.pow(10, 30);
+	float minEnergy = 1000000000000000000000000000000.0f;
+	
+	//float maxEnergy = -(float) Math.pow(10, 30);
+	float maxEnergy = -1000000000000000000000000000000.0f;
+
 
 	float beginE = 0.0f;
 
@@ -2227,8 +2237,12 @@ public class RotamerSearch implements Serializable {
 	// a96ff.initializeCalculation();
 	// a96ff.setNBEval(hElect,hVDW);
 
-	float minEnergy = (float) Math.pow(10, 30);
-	float maxEnergy = -(float) Math.pow(10, 30);
+	//float minEnergy = (float) Math.(10, 30);
+	float minEnergy = 1000000000000000000000000000000.0f;
+
+	//float maxEnergy = -(float) Math.pow(10, 30);
+	float maxEnergy = -1000000000000000000000000000000.0f;
+
 
 	double energyTerms[] = templateOffA96ff.calculateTotalEnergy(
 		m.actualCoordinates, -1); // compute the energy

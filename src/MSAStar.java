@@ -77,6 +77,9 @@
  * lowest-energy conformation, in order.
  * 
  */
+
+import net.jafama.*;
+
 public class MSAStar {
 
     // number of residues under consideration
@@ -453,8 +456,10 @@ public class MSAStar {
     // Called by hCompute(.)
     private float EnergyAtLevel(int topLevel, int curLevel, int conf[]) {
 
-	float minE = (float) Math.pow(10, 30);
-	float curE;
+	//float minE = (float) FastMath.pow(10.0f, 30.0f);
+    //Sean change - Math.pow is painfully slow
+	float minE = 1000000000000000000000000000000.0f;
+    float curE;
 	int index1;
 
 	float minShellResE;
@@ -468,8 +473,7 @@ public class MSAStar {
 
 	    index1 = nodeIndexOffset[curLevel] + i1; // the index of s at j
 
-	    minShellResE = RotamerSearch.getReducedShellRotE(
-		    pairwiseMinEnergyMatrix, index1, numTotalNodes);// pairwiseMinEnergyMatrix[numTotalNodes][index1];//the
+	    minShellResE = RotamerSearch.getReducedShellRotE(pairwiseMinEnergyMatrix, index1, numTotalNodes);// pairwiseMinEnergyMatrix[numTotalNodes][index1];//the
 								    // shell-residue
 								    // E is in
 								    // the last
@@ -485,7 +489,7 @@ public class MSAStar {
 
 	    curE = minShellResE + minIndVoxE + sumMinPairE + sumMinMinPairE;
 	    if (curE < minE) // compare to the min energy found so far
-		minE = curE;
+	    	minE = curE;
 	}
 
 	return minE;
@@ -525,7 +529,11 @@ public class MSAStar {
     // Called by sumMinMinPVE(.)
     private float indMinMinPVE(int kLevel, int firstIndex) {
 
-	float minEn = (float) Math.pow(10, 30);
+    //changed to FastMath
+    //Sean, Math.pow is slow and we shouldn't be doing it!
+	//float minEn = (float) FastMath.pow(10, 30);
+	float minEn = 1000000000000000000000000000000.0f;
+
 	float curEn;
 	int secondIndex;
 
@@ -535,7 +543,7 @@ public class MSAStar {
 
 	    curEn = pairwiseMinEnergyMatrix[firstIndex][secondIndex];
 	    if (curEn < minEn)
-		minEn = curEn;
+	    	minEn = curEn;
 	}
 
 	return minEn;

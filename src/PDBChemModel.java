@@ -123,7 +123,12 @@ class PDBChemModel {
 		tmpStg = tmpStg.trim();
 		modelAtomNumber = (new Integer(tmpStg)).intValue();
 		atomName = curLine.substring(12, 16); // Snag atom name
-		atomName = atomName.trim();
+
+		atomName = atomName.trim();//.toUpperCase(); //.replaceAll("[\\d]", "");
+		//System.out.println(atomName);
+		//Sean
+		//atomName = atomName.toUpperCase(); //really shouldn't store these as strings as they take up a ton of memory
+		//atomName = atomName.replaceAll("[^\\d]", "");
 		residueName = curLine.substring(17, 20); // Snag short residue
 							 // name
 		residueName = residueName.trim();
