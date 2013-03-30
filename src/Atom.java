@@ -858,98 +858,109 @@ public class Atom implements Serializable {
     // This returns the right handed rotation angle around the +x
     // axis where the -z axis is the 0. (0..360)
     // This was not written by me, but I have checked it
-    public double angleAboutXAxis() {
-	double R2D = 57.29577951308232090712;
-	double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1]
-		+ coord[2] * coord[2]);
-	double yComponent = coord[1] / distance;
-	double zComponent = coord[2] / distance;
-	double theta = 0.0;
-	if ((zComponent == 0) && (yComponent > 0))
-	    theta = 90.0;
-	else if ((zComponent == 0) && (yComponent < 0))
-	    theta = 270.0;
-	else if ((yComponent == 0) && (zComponent > 0))
-	    theta = 180.0;
-	else if ((yComponent == 0) && (zComponent <= 0))
-	    theta = 0.0;
-	else {
-	    theta = Math.atan(Math.abs(yComponent / zComponent)) * R2D;
-	    if ((yComponent > 0) && (zComponent > 0))
-		theta = 90.0 + Math.atan(Math.abs(zComponent / yComponent))
-			* R2D;
-	    else if ((yComponent < 0) && (zComponent > 0))
-		theta += 180.0;
-	    else if ((yComponent < 0) && (zComponent < 0))
-		theta = 270.0 + Math.atan(Math.abs(zComponent / yComponent))
-			* R2D;
+	public double angleAboutXAxis() {
+		final double R2D = 57.29577951308232090712;
+		//double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2]);
+		double yComponent = coord[1]; // distance;
+		double zComponent = coord[2]; // distance;
+		double theta = 0.0;
+		if ((zComponent == 0) && (yComponent > 0))
+			theta = 90.0;
+		else if ((zComponent == 0) && (yComponent < 0))
+			theta = 270.0;
+		else if ((yComponent == 0) && (zComponent > 0))
+			theta = 180.0;
+		else if ((yComponent == 0) && (zComponent <= 0))
+			theta = 0.0;
+		else {
+			if ((yComponent > 0) && (zComponent > 0))
+				theta = 90.0 + Math.atan(Math.abs(zComponent / yComponent)) * R2D;
+			else if ((yComponent < 0) && (zComponent > 0))
+				theta += 180.0;
+			else if ((yComponent < 0) && (zComponent < 0))
+				theta = 270.0 + Math.atan(Math.abs(zComponent / yComponent)) * R2D;
+			else {
+				theta = Math.atan(Math.abs(yComponent / zComponent)) * R2D;
+			}
+		}
+		return (theta);
 	}
-	return (theta);
-    }
 
-    // This returns the right handed rotation angle around the +y
-    // axis where the -x axis is the 0
-    // This was not written by me, but I have checked it
-    public double angleAboutYAxis() {
-	double R2D = 57.29577951308232090712;
-	double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1]
-		+ coord[2] * coord[2]);
-	double xComponent = coord[0] / distance;
-	double zComponent = coord[2] / distance;
-	double theta = 0.0;
-	if ((zComponent == 0) && (xComponent > 0))
-	    theta = 180.0;
-	else if ((zComponent == 0) && (xComponent <= 0))
-	    theta = 0.0;
-	else if ((xComponent == 0) && (zComponent > 0))
-	    theta = 90.0;
-	else if ((xComponent == 0) && (zComponent < 0))
-	    theta = 270.0;
-	else {
-	    theta = Math.atan(Math.abs(zComponent / xComponent)) * R2D;
-	    if ((zComponent > 0) && (xComponent > 0))
-		theta = 90.0 + Math.atan(Math.abs(xComponent / zComponent))
-			* R2D;
-	    else if ((zComponent < 0) && (xComponent > 0))
-		theta += 180.0;
-	    else if ((zComponent < 0) && (xComponent < 0))
-		theta = 270.0 + Math.atan(Math.abs(xComponent / zComponent))
-			* R2D;
+	// This returns the right handed rotation angle around the +y
+	// axis where the -x axis is the 0
+	// This was not written by me, but I have checked it
+	
+	/*Sean - eliminated the unnecessary and computationally expensive Math.sqrt
+	 * call. This speeds up the calculation and should reduce errors introduced by float or double
+	 * precision limitations (less calculations is better). Also, moved some calculations around
+	 * to eliminate redundancies but not alter the outcome.
+	 */
+	
+	public double angleAboutYAxis() {
+		final double R2D = 57.29577951308232090712;
+		//double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2]);
+		double xComponent = coord[0]; // distance;
+		double zComponent = coord[2]; // distance;
+		double theta = 0.0;
+		if ((zComponent == 0) && (xComponent > 0))
+			theta = 180.0;
+		else if ((zComponent == 0) && (xComponent <= 0))
+			theta = 0.0;
+		else if ((xComponent == 0) && (zComponent > 0))
+			theta = 90.0;
+		else if ((xComponent == 0) && (zComponent < 0))
+			theta = 270.0;
+		else {
+			if ((zComponent > 0) && (xComponent > 0))
+				theta = 90.0 + Math.atan(Math.abs(xComponent / zComponent)) * R2D;
+			else if ((zComponent < 0) && (xComponent > 0))
+				theta += 180.0;
+			else if ((zComponent < 0) && (xComponent < 0))
+				theta = 270.0 + Math.atan(Math.abs(xComponent / zComponent)) * R2D;
+			else {
+				theta = Math.atan(Math.abs(zComponent / xComponent)) * R2D;
+			}
+		}
+		return (theta);
 	}
-	return (theta);
-    }
 
-    // This returns the right handed rotation angle around the +z
-    // axis where the +x axis is the 0
-    // This was not written by me, but I have checked it
-    public double angleAboutZAxis() {
-	double R2D = 57.29577951308232090712;
-	double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1]
-		+ coord[2] * coord[2]);
-	double xComponent = coord[0] / distance;
-	double yComponent = coord[1] / distance;
-	double theta = 0.0;
-	if ((xComponent == 0) && (yComponent > 0))
-	    theta = 90.0;
-	else if ((xComponent == 0) && (yComponent < 0))
-	    theta = 270.0;
-	else if ((yComponent == 0) && (xComponent >= 0))
-	    theta = 0.0;
-	else if ((yComponent == 0) && (xComponent < 0))
-	    theta = 180.0;
-	else {
-	    theta = Math.atan(Math.abs(yComponent / xComponent)) * R2D;
-	    if ((yComponent > 0) && (xComponent < 0))
-		theta = 90.0 + Math.atan(Math.abs(xComponent / yComponent))
-			* R2D;
-	    else if ((yComponent < 0) && (xComponent < 0))
-		theta += 180.0;
-	    else if ((yComponent < 0) && (xComponent > 0))
-		theta = 270.0 + Math.atan(Math.abs(xComponent / yComponent))
-			* R2D;
+	// This returns the right handed rotation angle around the +z
+	// axis where the +x axis is the 0
+	// This was not written by me, but I have checked it
+	
+	/*Sean - eliminated the unnecessary and computationally expensive Math.sqrt
+	 * call. This speeds up the calculation and should reduce errors introduced by float or double
+	 * precision limitations (less calculations is better). Also, moved some calculations around
+	 * to eliminate redundancies but not alter the outcome.
+	 */
+	public double angleAboutZAxis() {
+		final double R2D = 57.29577951308232090712;
+		//double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2]);
+		double xComponent = coord[0]; // distance;
+		double yComponent = coord[1]; // distance;
+		double theta = 0.0;
+		if ((xComponent == 0) && (yComponent > 0))
+			theta = 90.0;
+		else if ((xComponent == 0) && (yComponent < 0))
+			theta = 270.0;
+		else if ((yComponent == 0) && (xComponent >= 0))
+			theta = 0.0;
+		else if ((yComponent == 0) && (xComponent < 0))
+			theta = 180.0;
+		else {
+			if ((yComponent > 0) && (xComponent < 0))
+				theta = 90.0 + Math.atan(Math.abs(xComponent / yComponent)) * R2D;
+			else if ((yComponent < 0) && (xComponent < 0))
+				theta += 180.0;
+			else if ((yComponent < 0) && (xComponent > 0))
+				theta = 270.0 + Math.atan(Math.abs(xComponent / yComponent)) * R2D;
+			else {
+				theta = Math.atan(Math.abs(yComponent / xComponent)) * R2D;
+			}
+		}
+		return (theta);
 	}
-	return (theta);
-    }
+    
 
     // Returns the angle (in degrees) made between atom1-atom2-thisatom
     // This was not written by me, but I have checked it
