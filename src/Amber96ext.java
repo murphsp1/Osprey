@@ -2172,88 +2172,104 @@ public class Amber96ext implements ForceField, Serializable {
 	}
 
     // Calculates the solvation energies for the system with given coordinates[]
-    private void calculateSolvationEnergyPart(float coordinates[],
-	    int curIndex, double energyTerms[]) {
+	// Calculates the solvation energies for the system with given coordinates[]
+		private void calculateSolvationEnergyPart(float coordinates[], int curIndex, double energyTerms[]) {
 
-	double energy = 0.0;
-	int atomix3, atomjx3, atomi, atomj;
-	double rij, rij2;
-	double rijx, rijy, rijz;
-	int indMult = 7;
-	int startInd;
+			double energy = 0.0;
+			//int atomix3, atomjx3, atomi, atomj;
+			//double rij, rij2;
+			//double rijx, rijy, rijz;
+			final int indMult = 7;
+			//int startInd;
 
-	int numSolvTerms = 0;
-	double solvTerms[] = null;
+			final int numSolvTerms = numPartSolv[curIndex];
+			
+			double solvTerms[] = null;
+			solvTerms = partSolv[curIndex];
 
-	numSolvTerms = numPartSolv[curIndex];
-	solvTerms = partSolv[curIndex];
+			for (int i = 0; i < numSolvTerms; i++) {
 
-	for (int i = 0; i < numSolvTerms; i++) {
+				int i_indMult = i *indMult;
+				int atomi = (int) solvTerms[i_indMult];
+				int atomix3 = atomi * 3;
+				
+				int molResidueNumber_i = m.atom[atomi].moleculeResidueNumber;
 
-	    atomi = (int) solvTerms[i * indMult];
-	    atomix3 = atomi * 3;
+				energy += solvTerms[i_indMult + 1]; // dGi(ref)
 
-	    energy += solvTerms[i * indMult + 1]; // dGi(ref)
+				float dGi_free = (float) solvTerms[i_indMult + 2]; // dGi(free)
+				float V_i = (float) solvTerms[i_indMult + 3]; // Vi
+				float lambda_i = (float) solvTerms[i_indMult + 4]; // lambdai
+				float vdWr_i = (float) solvTerms[i_indMult + 5]; // vdWri
 
-	    double dGi_free = solvTerms[i * indMult + 2]; // dGi(free)
-	    double V_i = solvTerms[i * indMult + 3]; // Vi
-	    double lambda_i = solvTerms[i * indMult + 4]; // lambdai
-	    double vdWr_i = solvTerms[i * indMult + 5]; // vdWri
+				int startInd = (int) solvTerms[i_indMult + 6];
+				
+				final float coords_atomix3 = coordinates[atomix3];
+				final float coords_atomix3_1 = coordinates[atomix3+1];			
+				final float coords_atomix3_2 = coordinates[atomix3+2];				
 
-	    startInd = (int) solvTerms[i * indMult + 6];
+				final boolean[] localSolvExcludePairs = solvExcludePairs[startInd];
+				
+				for (int j = 0; j < numSolvationTerms; j++) { // the pairwise
+					// solvation energies
 
-	    for (int j = 0; j < numSolvationTerms; j++) { // the pairwise
-							  // solvation energies
+					int j6 = j*6;
+					int atomj = (int) solvationTerms[j6];
 
-		atomj = (int) solvationTerms[j * 6];
-		atomjx3 = atomj * 3;
+					boolean comp = true;
+					if (molResidueNumber_i == m.atom[atomj].moleculeResidueNumber) {
+						if (j <= startInd)
+							comp = false;
+					}
 
-		boolean comp = true;
-		if (m.atom[atomi].moleculeResidueNumber == m.atom[atomj].moleculeResidueNumber) {
-		    if (j <= startInd)
-			comp = false;
-		}
+					if (comp) {
+						// atoms 1 or 2 bonds apart are excluded from each other's
+						// calculation of solvation free energy
+						//if (!solvExcludePairs[startInd][j]) {
+						if (!localSolvExcludePairs[j]) {
+							int atomjx3 = atomj * 3;
 
-		if (comp) {
-		    // atoms 1 or 2 bonds apart are excluded from each other's
-		    // calculation of solvation free energy
-		    if (!solvExcludePairs[startInd][j]) {
+							float rijx = coords_atomix3 - coordinates[atomjx3];
+							float rijy = coords_atomix3_1 - coordinates[atomjx3 + 1];
+							float rijz = coords_atomix3_2 - coordinates[atomjx3 + 2];
+							
+							float rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
+							//float rij = fastSqrtFloat(rij2);
+							//double rij = rij2;
+							//double rij = Double.longBitsToDouble( ( ( Double.doubleToLongBits( rij2 )-(1l<<52) )));
 
-			rijx = coordinates[atomix3] - coordinates[atomjx3];
-			rijy = coordinates[atomix3 + 1]
-				- coordinates[atomjx3 + 1];
-			rijz = coordinates[atomix3 + 2]
-				- coordinates[atomjx3 + 2];
-			rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-			rij = Math.sqrt(rij2); // distance between the two atoms
+							//if (rij < solvCutoff) {
+							//this works because solvCutoff is 9.0 (ie >1) and rij must be greater than 0 as it is a distance
+							if (rij2 < solvCutoffSquared) {
 
-			if (rij < solvCutoff) {
+								float rij = (float) Math.sqrt(rij2); // distance between the two atoms
 
-			    double dGj_free = solvationTerms[j * 6 + 2]; // dGj(free)
-			    double V_j = solvationTerms[j * 6 + 3]; // Vj
-			    double lambda_j = solvationTerms[j * 6 + 4]; // lambdaj
-			    double vdWr_j = solvationTerms[j * 6 + 5]; // vdWrj
+								float dGj_free = (float) solvationTerms[j6 + 2]; // dGj(free)
+								float V_j = (float) solvationTerms[j6 + 3]; // Vj
+								float lambda_j = (float) solvationTerms[j6 + 4]; // lambdaj
+								float vdWr_j = (float) solvationTerms[j6 + 5]; // vdWrj
 
-			    double coeff = 1 / (4 * Math.PI * Math
-				    .sqrt(Math.PI));
+								//double coeff = 1 / (4 * Math.PI * Math.sqrt(Math.PI));
 
-			    double Xij = (rij - vdWr_i) / lambda_i;
-			    double Xji = (rij - vdWr_j) / lambda_j;
+								float Xij = (rij - vdWr_i) / lambda_i;
+								float Xji = (rij - vdWr_j) / lambda_j;
 
-			    energy -= ((2 * coeff * dGi_free
-				    * Math.exp(-Xij * Xij) * V_j)
-				    / (lambda_i * rij2) + (2 * coeff * dGj_free
-				    * Math.exp(-Xji * Xji) * V_i)
-				    / (lambda_j * rij2));
+								//energy -= ((2 * coeff * dGi_free * Math.exp(-Xij * Xij) * V_j)
+								//    / (lambda_i * rij2) + (2 * coeff * dGj_free
+								//    * Math.exp(-Xji * Xji) * V_i) / (lambda_j * rij2));
+
+								energy -= ((INV_OF_2_PI_SQRTPI * dGi_free * FastMath.exp(-Xij * Xij) * V_j) / (lambda_i * rij2) + 
+										(INV_OF_2_PI_SQRTPI * dGj_free * FastMath.exp(-Xji * Xji) * V_i) / (lambda_j * rij2));    
+							}
+						}
+					}
+				}
 			}
-		    }
-		}
-	    }
-	}
 
-	// store computed energy
-	energyTerms[3] = solvScale * energy; // solvation
-    }
+			// store computed energy
+			energyTerms[3] = solvScale * energy; // solvation
+		}
+
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////
 
