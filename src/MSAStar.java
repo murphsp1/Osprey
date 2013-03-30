@@ -438,7 +438,8 @@ public class MSAStar {
 	// Called by hCompute(.)
 	private float EnergyAtLevel(int topLevel, int curLevel, int conf[]) {
 
-		float minE = (float) Math.pow(10, 30);
+		//float minE = (float) Math.pow(10, 30);
+		float minE = 1000000000000000000000000000000.0f;
 		float curE;
 		int index1;
 
@@ -510,7 +511,8 @@ public class MSAStar {
 	// Called by sumMinMinPVE(.)
 	private float indMinMinPVE(int kLevel, int firstIndex) {
 
-		float minEn = (float) Math.pow(10, 30);
+		//float minEn = (float) Math.pow(10, 30);
+		float minEn = 1000000000000000000000000000000.0f;
 		float curEn;
 		int secondIndex;
 
