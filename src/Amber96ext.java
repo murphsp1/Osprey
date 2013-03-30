@@ -102,7 +102,9 @@ public class Amber96ext implements ForceField, Serializable {
 
     boolean doSolvationE = false; // should solvation energies be computed
 
-    double dielectric = 1.0;
+    //double dielectric = 1.0;
+    float dielectric = 1.0f;
+    
     boolean distDepDielect = true;
     final float constCoulomb = 332.0f;
     final float INV_OF_2_PI_SQRTPI = (float) (1.0f / (2.0f * Math.PI * Math.sqrt(Math.PI)));
@@ -116,9 +118,9 @@ public class Amber96ext implements ForceField, Serializable {
     int number13Terms = 0;
     int numSolvationTerms = 0;
     int halfNBeval[], NBeval[];
-    double bondStretchTerms[], angleBendTerms[], dihedralAngleTerms[];
-    double nonBondedTerms[], halfNonBondedTerms[];
-    double solvationTerms[];
+    float bondStretchTerms[], angleBendTerms[], dihedralAngleTerms[];
+    float nonBondedTerms[], halfNonBondedTerms[];
+    float solvationTerms[];
     boolean solvExcludePairs[][];
     double D2R = 0.01745329251994329576;
     double R2D = 57.29577951308232090712;
@@ -172,18 +174,18 @@ public class Amber96ext implements ForceField, Serializable {
     // Used to keep track of partial subsets of EV nonbonded terms
     int[] numPartHalfNonBonded = new int[0];
     int[] numPartNonBonded = new int[0];
-    double[][] partHalfNonBonded = new double[0][0];
-    double[][] partNonBonded = new double[0][0];
+    float[][] partHalfNonBonded = new float[0][0];
+    float[][] partNonBonded = new float[0][0];
     int[][] partHalfNBeval = new int[0][0];
     int[][] partNBeval = new int[0][0];
 
     // Used to keep track of partial subsets of Dihed terms
     int numPartDihed[] = null;
-    double partDihed[][] = null;
+    float partDihed[][] = null;
 
     // Used to keep track of partial subsets of solvation terms
     int numPartSolv[] = null;
-    double partSolv[][] = null;
+    float partSolv[][] = null;
 
     // Solvation interactions for atoms more than 9.0A apart are already counted
     // in dG(ref);
@@ -245,7 +247,7 @@ public class Amber96ext implements ForceField, Serializable {
 	}
 
 	distDepDielect = ddDielect;
-	dielectric = dielectConst;
+	dielectric = (float) dielectConst;
 
 	vdwMultiplier = (float) vdwMult;
 
@@ -255,6 +257,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 	//********
 	//this function is a complete hack, a fast inverse square root computation from John Carmack
+    /*
 	private final static double fastSqrt(double x) {
 	    double xhalf = 0.5d*x;
 	    long i = Double.doubleToLongBits(x);
@@ -272,6 +275,7 @@ public class Amber96ext implements ForceField, Serializable {
 	    x = x*(1.5f - xhalf*x*x);
 	    return (x);
 	}
+	*/
     
     
     // ************************************
@@ -1338,7 +1342,7 @@ public class Amber96ext implements ForceField, Serializable {
 	int atomType1, atomType2, atomType4;
 	double equilibriumDistance[] = new double[1];
 	double epsilon[] = new double[1];
-	double smallerArray[];
+	float smallerArray[];
 	boolean evalAtom[];
 
 	numberNonBonded = 0;
@@ -1358,7 +1362,7 @@ public class Amber96ext implements ForceField, Serializable {
 	    evalAtom = getEvalForRes(m.residue[i], evalAtom);
 	}
 
-	halfNonBondedTerms = new double[m.numberOf14Connections * 4];
+	halfNonBondedTerms = new float[m.numberOf14Connections * 4];
 
 	if (debug)
 	    System.out.println("Initial number of 1-4 pairs: "
@@ -1378,8 +1382,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 		ix4b += 4;
 		double epsilonProduct = 0, ri = 0, rj = 0;
-		if (!(getNonBondedParameters(atomType1, equilibriumDistance,
-			epsilon)))
+		if (!(getNonBondedParameters(atomType1, equilibriumDistance, epsilon)))
 		    System.out
 			    .println("WARNING: Could not find nb parameters for "
 				    + atom1
@@ -1418,9 +1421,9 @@ public class Amber96ext implements ForceField, Serializable {
 			}
 			epsilonProduct = Math.sqrt(epsilonProduct);
 			// This part is 1-4 interactions which are scaled by 1/2
-			double Bij = (ri + rj) * (ri + rj);
+			float Bij = (float) ((ri + rj) * (ri + rj));
 			Bij = Bij * Bij * Bij;
-			double Aij = Bij * Bij;
+			float Aij = Bij * Bij;
 			switch (EnvironmentVars.forcefld) {
 			case AMBER:
 			    Aij *= epsilonProduct * 0.5;
@@ -1448,7 +1451,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 	// Reduce the size of the halfNonBondedTerms to the size we actually
 	// used
-	smallerArray = new double[numHalfNonBondedTerms * 4];
+	smallerArray = new float[numHalfNonBondedTerms * 4];
 	System.arraycopy(halfNonBondedTerms, 0, smallerArray, 0,
 		numHalfNonBondedTerms * 4);
 	halfNonBondedTerms = smallerArray;
@@ -1457,7 +1460,7 @@ public class Amber96ext implements ForceField, Serializable {
 		    + numHalfNonBondedTerms);
 
 	// make an array of 4 terms 1=atom1, 2=atom2, 3=Aij, 4=Bij
-	nonBondedTerms = new double[m.numberNonBonded * 4];
+	nonBondedTerms = new float[m.numberNonBonded * 4];
 
 	if (debug)
 	    System.out.println("Initial number of full nonbonded pairs: "
@@ -1494,9 +1497,9 @@ public class Amber96ext implements ForceField, Serializable {
 			epsilonProduct *= epsilon[0];
 			double rj = equilibriumDistance[0];
 			epsilonProduct = Math.sqrt(epsilonProduct);
-			double Bij = (ri + rj) * (ri + rj);
+			float Bij = (float) ((ri + rj) * (ri + rj));
 			Bij = Bij * Bij * Bij;
-			double Aij = Bij * Bij * epsilonProduct;
+			float Aij = Bij * Bij * (float) epsilonProduct;
 			Bij *= epsilonProduct * 2.0;
 			// Aij = (ri+rj)^12 * sqrt(ei*ej)
 			// Bij = (ri+rj)^6 * sqrt(ei*ej) * 2
@@ -1512,7 +1515,7 @@ public class Amber96ext implements ForceField, Serializable {
 	}
 
 	// Reduce the size of the nonBondedTerms to the size we actually used
-	smallerArray = new double[numberNonBonded * 4];
+	smallerArray = new float[numberNonBonded * 4];
 	System.arraycopy(nonBondedTerms, 0, smallerArray, 0,
 		numberNonBonded * 4);
 	nonBondedTerms = smallerArray;
@@ -1535,7 +1538,7 @@ public class Amber96ext implements ForceField, Serializable {
     private void initializeSolvationCalculation() {
 
 	int atom1, ix6, numTerms;
-	double smallerArray[];
+	float smallerArray[];
 	boolean evalAtom[];
 
 	if (debug)
@@ -1566,7 +1569,7 @@ public class Amber96ext implements ForceField, Serializable {
 	// Setup an array of 6 terms: 1=atom1(moleculeAtomNumber), 2=dG(ref),
 	// 3=dG(free), 4=volume, 5=lambda,
 	// 6=vdW radius
-	solvationTerms = new double[numSolvationTerms * 6];
+	solvationTerms = new float[numSolvationTerms * 6];
 
 	if (debug)
 	    System.out.println("Initial number of solvation terms: "
@@ -1611,11 +1614,11 @@ public class Amber96ext implements ForceField, Serializable {
 		    } else {
 
 			solvationTerms[ix6] = atom1;
-			solvationTerms[ix6 + 1] = dGref[0];
-			solvationTerms[ix6 + 2] = dGfree[0];
-			solvationTerms[ix6 + 3] = atVolume[0];
-			solvationTerms[ix6 + 4] = lambda[0];
-			solvationTerms[ix6 + 5] = vdWradiusExt[0];
+			solvationTerms[ix6 + 1] = (float) dGref[0];
+			solvationTerms[ix6 + 2] = (float) dGfree[0];
+			solvationTerms[ix6 + 3] = (float) atVolume[0];
+			solvationTerms[ix6 + 4] = (float) lambda[0];
+			solvationTerms[ix6 + 5] = (float) vdWradiusExt[0];
 			numTerms++;
 		    }
 		}
@@ -1623,14 +1626,13 @@ public class Amber96ext implements ForceField, Serializable {
 	}
 
 	// Shrink the dihedralAngleTerms array down
-	smallerArray = new double[numTerms * 6];
+	smallerArray = new float[numTerms * 6];
 	System.arraycopy(solvationTerms, 0, smallerArray, 0, numTerms * 6);
 	solvationTerms = smallerArray;
 	numSolvationTerms = numTerms;
 
 	if (debug)
-	    System.out.println("Final number of solvation terms: "
-		    + numSolvationTerms);
+	    System.out.println("Final number of solvation terms: " + numSolvationTerms);
 
 	// Determine which pairs of atoms can be excluded from the solvation
 	// energy computation
@@ -1645,10 +1647,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 		    int atomj = (int) solvationTerms[j * 6];
 		    if ((!m.are12connected(atomi, atomj))
-			    && (!m.are13connected(atomi, atomj))) // (not 1-2)
-								  // and (not
-								  // 1-3)
-								  // connected
+			    && (!m.are13connected(atomi, atomj))) // (not 1-2) and (not 1-3) connected
 			solvExcludePairs[i][j] = false;
 		    else
 			solvExcludePairs[i][j] = true;
@@ -1725,17 +1724,17 @@ public class Amber96ext implements ForceField, Serializable {
 	numPartHalfNonBonded = new int[numRows];
 	numPartNonBonded = new int[numRows];
 
-	partHalfNonBonded = new double[numRows][];
-	partNonBonded = new double[numRows][];
+	partHalfNonBonded = new float[numRows][];
+	partNonBonded = new float[numRows][];
 	// In the worst case each atom in a column of atomList is involved with
 	// every other atom in the molecule
 	partHalfNBeval = new int[numRows][];
 	partNBeval = new int[numRows][];
 
 	for (int i = 0; i < numRows; i++) {
-	    partHalfNonBonded[i] = new double[numColumns[i] * m.numberOfAtoms
+	    partHalfNonBonded[i] = new float[numColumns[i] * m.numberOfAtoms
 		    * 4];
-	    partNonBonded[i] = new double[numColumns[i] * m.numberOfAtoms * 4];
+	    partNonBonded[i] = new float[numColumns[i] * m.numberOfAtoms * 4];
 	    // In the worst case each atom in a column of atomList is involved
 	    // with
 	    // every other atom in the molecule
@@ -1798,7 +1797,7 @@ public class Amber96ext implements ForceField, Serializable {
 	int atomi = 0;
 
 	numPartSolv = new int[numRows];
-	partSolv = new double[numRows][maxNumColumns * m.numberOfAtoms * 7];
+	partSolv = new float[numRows][maxNumColumns * m.numberOfAtoms * 7];
 
 	for (int q = 0; q < numRows; q++) {
 	    int[] tempAtomList = new int[m.numberOfAtoms];
@@ -1894,8 +1893,8 @@ public class Amber96ext implements ForceField, Serializable {
 
 		int numHalfNBterms = 0;
 		int numNBterms = 0;
-		double halfNBterms[] = null;
-		double nbTerms[] = null;
+		float halfNBterms[] = null;
+		float nbTerms[] = null;
 		int halfNBev[] = null;
 		int nbEv[] = null;
 
@@ -2166,7 +2165,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 		int numSolvTerms = numSolvationTerms;
 		
-		double solvTerms[] = null;
+		float solvTerms[] = null;
 		solvTerms = solvationTerms;
 
 		for (int i = 0; i < numSolvTerms; i++) {
@@ -2261,7 +2260,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 			final int numSolvTerms = numPartSolv[curIndex];
 			
-			double solvTerms[] = null;
+			float solvTerms[] = null;
 			solvTerms = partSolv[curIndex];
 
 			for (int i = 0; i < numSolvTerms; i++) {
@@ -2393,8 +2392,8 @@ public class Amber96ext implements ForceField, Serializable {
 
 	int numHalfNBterms = 0;
 	int numNBterms = 0;
-	double halfNBterms[] = null;
-	double nbTerms[] = null;
+	float halfNBterms[] = null;
+	float nbTerms[] = null;
 
 	if (curIndex == -1) { // full gradient is computed
 	    numHalfNBterms = numHalfNonBondedTerms;
@@ -2545,7 +2544,7 @@ public class Amber96ext implements ForceField, Serializable {
 		int indMult = 0;
 
 		int numSolvTerms = 0;
-		double solvTerms[] = null;
+		float solvTerms[] = null;
 
 		if (curIndex == -1) { // full energy is computed
 			numSolvTerms = numSolvationTerms;
