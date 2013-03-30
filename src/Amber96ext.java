@@ -2171,9 +2171,8 @@ public class Amber96ext implements ForceField, Serializable {
 		energyTerms[3] = solvScale * energy; // solvation
 	}
 
-    // Calculates the solvation energies for the system with given coordinates[]
 	// Calculates the solvation energies for the system with given coordinates[]
-		private void calculateSolvationEnergyPart(float coordinates[], int curIndex, double energyTerms[]) {
+	private void calculateSolvationEnergyPart(float coordinates[], int curIndex, double energyTerms[]) {
 
 			double energy = 0.0;
 			//int atomix3, atomjx3, atomi, atomj;
@@ -2458,102 +2457,107 @@ public class Amber96ext implements ForceField, Serializable {
 
     // Computes the gradient for the solvation energy term;
     // The computed gradient is in the molecules gradient member variable
-    private void calculateSolvationGradient(int curIndex) {
+	private void calculateSolvationGradient(int curIndex) {
 
-	double forceix, forceiy, forceiz;
-	int atomix3, atomjx3, atomi, atomj;
-	double rij, rij2, rij3;
-	double rijx, rijy, rijz;
-	double tempTerm_i;
-	int indMult = 0;
+		double forceix, forceiy, forceiz;
+		int atomix3, atomjx3, atomi, atomj;
+		//double rij, rij2, rij3;
+		//double rijx, rijy, rijz;
+		double tempTerm_i;
+		int indMult = 0;
 
-	int numSolvTerms = 0;
-	double solvTerms[] = null;
+		int numSolvTerms = 0;
+		double solvTerms[] = null;
 
-	if (curIndex == -1) { // full energy is computed
-	    numSolvTerms = numSolvationTerms;
-	    solvTerms = solvationTerms;
-	    indMult = 6;
-	} else { // partial energy is computed, based on flexible residue
-		 // curIndex
-	    numSolvTerms = numPartSolv[curIndex];
-	    solvTerms = partSolv[curIndex];
-	    indMult = 7;
-	}
-
-	for (int i = 0; i < numSolvTerms; i++) {
-
-	    atomi = (int) solvTerms[i * indMult];
-	    atomix3 = atomi * 3;
-
-	    double dGi_free = solvTerms[i * indMult + 2]; // dGi(free)
-	    double V_i = solvTerms[i * indMult + 3]; // Vi
-	    double lambda_i = solvTerms[i * indMult + 4]; // lambdai
-	    double vdWr_i = solvTerms[i * indMult + 5]; // vdWri
-
-	    int startInd = i;
-	    if (curIndex != -1)
-		startInd = (int) solvTerms[i * indMult + 6];
-
-	    forceix = 0.0;
-	    forceiy = 0.0;
-	    forceiz = 0.0;
-	    for (int j = 0; j < numSolvationTerms; j++) { // the pairwise
-							  // solvation energies
-
-		if (j != startInd) {
-
-		    atomj = (int) solvTerms[j * 6];
-		    atomjx3 = atomj * 3;
-
-		    // atoms 1 or 2 bonds apart are excluded from each other's
-		    // calculation of solvation free energy
-		    if (!solvExcludePairs[startInd][j]) {
-
-			rijx = m.actualCoordinates[atomix3]
-				- m.actualCoordinates[atomjx3];
-			rijy = m.actualCoordinates[atomix3 + 1]
-				- m.actualCoordinates[atomjx3 + 1];
-			rijz = m.actualCoordinates[atomix3 + 2]
-				- m.actualCoordinates[atomjx3 + 2];
-			rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-			rij = Math.sqrt(rij2); // distance between the two atoms
-			rij3 = rij2 * rij;
-
-			if (rij < solvCutoff) {
-
-			    double dGj_free = solvationTerms[j * 6 + 2]; // dGj(free)
-			    double V_j = solvationTerms[j * 6 + 3]; // Vj
-			    double lambda_j = solvationTerms[j * 6 + 4]; // lambdaj
-			    double vdWr_j = solvationTerms[j * 6 + 5]; // vdWrj
-
-			    double coeff = 1 / (Math.PI * Math.sqrt(Math.PI));
-
-			    double Xij = (rij - vdWr_i) / lambda_i;
-			    double Xji = (rij - vdWr_j) / lambda_j;
-
-			    double Vj_coeff = Xij / lambda_i + 1 / rij;
-			    double Vi_coeff = Xji / lambda_j + 1 / rij;
-
-			    tempTerm_i = ((coeff * dGi_free
-				    * Math.exp(-Xij * Xij) * Vj_coeff * V_j)
-				    / (lambda_i * rij3) + (coeff * dGj_free
-				    * Math.exp(-Xji * Xji) * Vi_coeff * V_i)
-				    / (lambda_j * rij3));
-
-			    forceix += tempTerm_i * rijx;
-			    forceiy += tempTerm_i * rijy;
-			    forceiz += tempTerm_i * rijz;
-			}
-		    }
+		if (curIndex == -1) { // full energy is computed
+			numSolvTerms = numSolvationTerms;
+			solvTerms = solvationTerms;
+			indMult = 6;
+		} else { // partial energy is computed, based on flexible residue
+			// curIndex
+			numSolvTerms = numPartSolv[curIndex];
+			solvTerms = partSolv[curIndex];
+			indMult = 7;
 		}
-	    }
 
-	    m.gradient[atomix3] += solvScale * forceix;
-	    m.gradient[atomix3 + 1] += solvScale * forceiy;
-	    m.gradient[atomix3 + 2] += solvScale * forceiz;
+		for (int i = 0; i < numSolvTerms; i++) {
+
+			int i_indMult = i * indMult;
+			atomi = (int) solvTerms[i_indMult];
+			atomix3 = atomi * 3;
+
+			float dGi_free = (float) solvTerms[i_indMult + 2]; // dGi(free)
+			float V_i = (float) solvTerms[i_indMult + 3]; // Vi
+			float lambda_i = (float) solvTerms[i_indMult + 4]; // lambdai
+			float vdWr_i = (float) solvTerms[i_indMult + 5]; // vdWri
+
+			int startInd = i;
+			if (curIndex != -1)
+				startInd = (int) solvTerms[i_indMult + 6];
+
+			forceix = 0.0;
+			forceiy = 0.0;
+			forceiz = 0.0;
+			
+			float actCoords_ix3 = m.actualCoordinates[atomix3];
+			float actCoords_ix3_1 = m.actualCoordinates[atomix3+1];
+			float actCoords_ix3_2 = m.actualCoordinates[atomix3+2];
+			for (int j = 0; j < numSolvationTerms; j++) { // the pairwise
+				// solvation energies
+
+				if (j != startInd) {
+
+					int j6 = j*6;
+					atomj = (int) solvTerms[j6];
+					
+					// atoms 1 or 2 bonds apart are excluded from each other's
+					// calculation of solvation free energy
+					if (!solvExcludePairs[startInd][j]) {
+						
+						atomjx3 = atomj * 3;
+						float rijx = actCoords_ix3 - m.actualCoordinates[atomjx3];
+						float rijy = actCoords_ix3_1 - m.actualCoordinates[atomjx3 + 1];
+						float rijz = actCoords_ix3_2 - m.actualCoordinates[atomjx3 + 2];
+						float rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
+
+						if (rij2 < solvCutoffSquared) {
+							
+							float rij = (float) Math.sqrt(rij2); // distance between the two atoms
+							float rij3 = rij2 * rij;
+
+							float dGj_free = (float) solvationTerms[j6 + 2]; // dGj(free)
+							float V_j = (float) solvationTerms[j6 + 3]; // Vj
+							float lambda_j = (float) solvationTerms[j6 + 4]; // lambdaj
+							float vdWr_j = (float) solvationTerms[j6 + 5]; // vdWrj
+
+							//double coeff = 1 / (Math.PI * Math.sqrt(Math.PI));
+							float coeff = 2.0f * INV_OF_2_PI_SQRTPI;
+
+							float Xij = (rij - vdWr_i) / lambda_i;
+							float Xji = (rij - vdWr_j) / lambda_j;
+
+							float Vj_coeff = Xij / lambda_i + 1 / rij;
+							float Vi_coeff = Xji / lambda_j + 1 / rij;
+
+							tempTerm_i = ((coeff * dGi_free
+									* FastMath.exp(-Xij * Xij) * Vj_coeff * V_j)
+									/ (lambda_i * rij3) + (coeff * dGj_free
+											* FastMath.exp(-Xji * Xji) * Vi_coeff * V_i)
+											/ (lambda_j * rij3));
+
+							forceix += tempTerm_i * rijx;
+							forceiy += tempTerm_i * rijy;
+							forceiz += tempTerm_i * rijz;
+						}
+					}
+				}
+			}
+
+			m.gradient[atomix3] += solvScale * forceix;
+			m.gradient[atomix3 + 1] += solvScale * forceiy;
+			m.gradient[atomix3 + 2] += solvScale * forceiz;
+		}
 	}
-    }
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////
 
