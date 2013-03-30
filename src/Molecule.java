@@ -1386,8 +1386,10 @@ public class Molecule implements Serializable {
 	resolveCoordinates(a3num); // update a3 coords
 	resolveCoordinates(a4num); // update a4 coords
 
+	/*This atom is never used
 	Atom pseudoAtom2 = new Atom("a2", a2.coord[0] - a3.coord[0],
 		a2.coord[1] - a3.coord[1], a2.coord[2] - a3.coord[2]);
+	*/
 	double originalTorsion = a4.torsion(a1, a2, a3);
 
 	changeTorsion(a1num, a2num, a3num, a4num, torsion - originalTorsion,
