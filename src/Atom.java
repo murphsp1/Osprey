@@ -77,6 +77,7 @@
  */
 
 import java.io.Serializable;
+import net.jafama.*;
 
 /**
  * Handles functions and data associated with atoms. Example functions include
@@ -969,33 +970,36 @@ public class Atom implements Serializable {
 	return (R2D * angleInRadians(atom1, atom2));
     }
 
-    // Returns the angle (in radians) made between atom1-atom2-thisatom
-    // This was not written by me, but I have checked it
-    public double angleInRadians(Atom atom1, Atom atom2) {
-	double x12, x32, y12, y32, z12, z32, l12, l32, dp;
-	double R2D = 57.29577951308232090712;
 
-	x12 = atom1.coord[0] - atom2.coord[0];
-	y12 = atom1.coord[1] - atom2.coord[1];
-	z12 = atom1.coord[2] - atom2.coord[2];
-	x32 = coord[0] - atom2.coord[0];
-	y32 = coord[1] - atom2.coord[1];
-	z32 = coord[2] - atom2.coord[2];
-	l12 = Math.sqrt(x12 * x12 + y12 * y12 + z12 * z12);
-	l32 = Math.sqrt(x32 * x32 + y32 * y32 + z32 * z32);
-	if (l12 == 0.0) {
-	    return (0.0);
+	// Returns the angle (in radians) made between atom1-atom2-thisatom
+	// This was not written by me, but I have checked it
+	public double angleInRadians(Atom atom1, Atom atom2) {
+		double x12, x32, y12, y32, z12, z32, l12, l32, dp;
+		//double R2D = 57.29577951308232090712;
+
+		x12 = atom1.coord[0] - atom2.coord[0];
+		y12 = atom1.coord[1] - atom2.coord[1];
+		z12 = atom1.coord[2] - atom2.coord[2];
+		x32 = coord[0] - atom2.coord[0];
+		y32 = coord[1] - atom2.coord[1];
+		z32 = coord[2] - atom2.coord[2];
+		l12 = (x12 * x12 + y12 * y12 + z12 * z12);
+		l32 = (x32 * x32 + y32 * y32 + z32 * z32);
+		if (l12 == 0.0) {
+			return (0.0);
+		}
+		if (l32 == 0.0) {
+			return (0.0);
+		}
+		l12 = Math.sqrt(l12);
+		l32 = Math.sqrt(l32);
+		dp = (x12 * x32 + y12 * y32 + z12 * z32) / (l12 * l32);
+		if (dp < -1.0)
+			dp = -1.0;
+		else if (dp > 1.0)
+			dp = 1.0;
+		return (FastMath.acos(dp));
 	}
-	if (l32 == 0.0) {
-	    return (0.0);
-	}
-	dp = (x12 * x32 + y12 * y32 + z12 * z32) / (l12 * l32);
-	if (dp < -1.0)
-	    dp = -1.0;
-	else if (dp > 1.0)
-	    dp = 1.0;
-	return (Math.acos(dp));
-    }
 
     // Returns the torsion angle (in degrees) made between
     // atom1-atom2-atom3-thisatom
@@ -1047,7 +1051,7 @@ public class Atom implements Serializable {
 	else if (ct > 1.0)
 	    ct = 1.0;
 
-	ap = Math.acos(ct);
+	ap = FastMath.acos(ct);
 	d = xkj * (dz * gy - dy * gz) + ykj * (dx * gz - dz * gx) + zkj
 		* (dy * gx - dx * gy);
 	if (d < 0.0)
@@ -1069,16 +1073,15 @@ public class Atom implements Serializable {
 
     // Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
     // OXT, H, H1, H2, H3)
-    public boolean setIsBBatom() {
-	if (name.equalsIgnoreCase("N") || name.equalsIgnoreCase("CA")
-		|| name.equalsIgnoreCase("C") || name.equalsIgnoreCase("O")
-		|| name.equalsIgnoreCase("OXT") || name.equalsIgnoreCase("H")
-		|| name.equalsIgnoreCase("H1") || name.equalsIgnoreCase("H2")
-		|| name.equalsIgnoreCase("H3"))
-	    return true;
-	else
-	    return false;
-    }
+	public boolean setIsBBatom() {
+		if ( name.equals("C") || name.equals("H") || name.equals("O") || name.equals("N") || name.equalsIgnoreCase("CA")
+			|| name.equalsIgnoreCase("OXT")  || name.equals("H1") || name.equals("H2") || name.equals("H3")
+			|| name.equals("h") || name.equals("c") || name.equals("o") || name.equals("n") || name.equals("h1") 
+			|| name.equals("h2") || name .equals("h3"))
+			return true;
+		else
+			return false;
+	}
 
     /*
      * //Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
