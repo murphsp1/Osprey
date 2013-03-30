@@ -124,6 +124,12 @@ class PDBChemModel {
 		modelAtomNumber = (new Integer(tmpStg)).intValue();
 		atomName = curLine.substring(12, 16); // Snag atom name
 		atomName = atomName.trim();
+		//Sean
+		//System.out.println(atomName);
+		//Considered converting to uppercase once and only once to simplify string checking in atom.setProperties
+		//atomName = atomName.toUpperCase(); 
+		//really shouldn't store these as strings as they take up a ton of memory
+		
 		residueName = curLine.substring(17, 20); // Snag short residue
 							 // name
 		residueName = residueName.trim();
