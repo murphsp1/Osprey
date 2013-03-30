@@ -60,6 +60,9 @@
 /**
  * This class implements rotation matricies.
  */
+
+import net.jafama.*;
+
 public class RotMatrix {
 
     RotMatrix() {
@@ -127,34 +130,27 @@ public class RotMatrix {
     // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
     // are in position 3*i .. (3*(i+1))-1
-    public void axisRotate(float ax, float ay, float az, float thetaDeg,
-	    float theCoords[], int numCoords) {
-
-	float tx, ty, tz;
+    public void axisRotate(float ax, float ay, float az, float thetaDeg, float theCoords[], int numCoords) {
 
 	float[][] rot_mtx = new float[3][3];
 	getRotMatrix(ax, ay, az, (float) thetaDeg, rot_mtx);
 
 	int ix3 = 0;
 	for (int i = 0; i < numCoords; i++) {
-	    tx = theCoords[ix3];
-	    ty = theCoords[ix3 + 1];
-	    tz = theCoords[ix3 + 2];
+	    float tx = theCoords[ix3];
+	    float ty = theCoords[ix3 + 1];
+	    float tz = theCoords[ix3 + 2];
 
-	    theCoords[ix3] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz
-		    * rot_mtx[0][2];
-	    theCoords[ix3 + 1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz
-		    * rot_mtx[1][2];
-	    theCoords[ix3 + 2] = tx * rot_mtx[2][0] + ty * rot_mtx[2][1] + tz
-		    * rot_mtx[2][2];
+	    theCoords[ix3] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz * rot_mtx[0][2];
+	    theCoords[ix3 + 1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz * rot_mtx[1][2];
+	    theCoords[ix3 + 2] = tx * rot_mtx[2][0] + ty * rot_mtx[2][1] + tz * rot_mtx[2][2];
 
 	    ix3 += 3;
 	}
     }
 
     // Translates an array of points by the specified amount
-    public void translate(float tx, float ty, float tz, float theCoords[],
-	    int numCoords) {
+    public void translate(float tx, float ty, float tz, float theCoords[], int numCoords) {
 
 	int ix3 = 0;
 	for (int i = 0; i < numCoords; i++) {
@@ -171,13 +167,16 @@ public class RotMatrix {
 	    float[][] rot_mtx) {
 
 	// First convert the axisangle to a quaternion
-	float sin_a = (float) Math.sin(angle * 3.14159265 / 180 / 2);
-	float cos_a = (float) Math.cos(angle * 3.14159265 / 180 / 2);
+	//float sin_a = (float) Math.sin(angle * 3.14159265 / 180 / 2);
+	final float sin_a = (float) Math.sin(angle * 0.00872664625);
+	//float cos_a = (float) Math.cos(angle * 3.14159265 / 180 / 2);
+	
 	float tmp = (float) Math.sqrt(fx * fx + fy * fy + fz * fz);
 	float qx = fx / tmp * sin_a;
 	float qy = fy / tmp * sin_a;
 	float qz = fz / tmp * sin_a;
-	float qw = cos_a;
+	float qw = (float) Math.cos(angle * 0.00872664625);
+	
 	tmp = (float) Math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
 	qx /= tmp;
 	qy /= tmp;
