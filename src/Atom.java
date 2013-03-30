@@ -112,6 +112,16 @@ public class Atom implements Serializable {
 
     Atom() {
     }
+    
+    /*Sean - created a new constructor for Atom to handle the case where temporary atoms are 
+	 * created with no meaningful name. This constructor avoids the intensely painful 
+	 * setProperties() method
+	 */
+	Atom(float xpos, float ypos, float zpos) {
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
+	}
 
     Atom(String atomName, float xpos, float ypos, float zpos) {
 	name = atomName;
