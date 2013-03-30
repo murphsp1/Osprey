@@ -69,6 +69,127 @@ public class RotMatrix {
 
     }
 
+	// Rotates an array of points around the +x axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	public void xAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
+		//axisRotate(1.0f, 0.0f, 0.0f, thetaDeg, theCoords, numCoords);
+		
+		float sinSquared = (float) FastMath.sin(thetaDeg * 0.00872664625);
+		final float cossin = sinSquared * (float) FastMath.cos(thetaDeg * 0.00872664625);
+		sinSquared = sinSquared * sinSquared;
+		
+		int ix3 = 0;
+		for (int i = 0; i < numCoords; i++) {
+			//float tx = theCoords[ix3];
+			float ty = theCoords[ix3 + 1];
+			float tz = theCoords[ix3 + 2];
+
+			//theCoords[ix3] = tx * rot_mtx[0][0] + ty * rot_mtx[0][1] + tz * rot_mtx[0][2];
+			theCoords[ix3 + 1] = ty * (1.0f - (2.0f * sinSquared)) + tz * -2.0f * cossin;
+			theCoords[ix3 + 2] = ty * 2.0f * cossin + tz * (1 - (2.0f * sinSquared));
+
+			ix3 += 3;
+		}
+	}
+
+	// Rotates an array of points around the +x axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	public void xAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
+		//axisRotate(1.0f, 0.0f, 0.0f, new Double(thetaDeg).floatValue(),theCoords, numCoords);
+		xAxisRotate(new Double(thetaDeg).floatValue(), theCoords, numCoords);
+
+	}
+
+	// Rotates an array of points around the +y axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	
+	public void yAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
+		//axisRotate(0.0f, 1.0f, 0.0f, thetaDeg, theCoords, numCoords);
+		/*This is an optimized version that avoids using the more general axisRotate function
+		 * which calls Math.sqrt twice.
+		 */
+		
+		float sinSquared = (float) FastMath.sin(thetaDeg * 0.00872664625);
+		final float cossin = sinSquared * (float) FastMath.cos(thetaDeg * 0.00872664625);
+		sinSquared = sinSquared * sinSquared;
+		
+		//float[][] rot_mtx = new float[3][3];
+		//getRotMatrix(ax, ay, az, (float) thetaDeg, rot_mtx);
+
+		int ix3 = 0;
+		for (int i = 0; i < numCoords; i++) {
+			float tx = theCoords[ix3];
+			//float ty = theCoords[ix3 + 1];
+			float tz = theCoords[ix3 + 2];
+
+			theCoords[ix3] = tx * (1.0f - (2.0f * sinSquared)) +  tz * 2.0f * cossin;
+			//theCoords[ix3 + 1] = tx * rot_mtx[1][0] + ty * rot_mtx[1][1] + tz * rot_mtx[1][2];
+			theCoords[ix3 + 2] = tx * (-2.0f * cossin) + tz * (1.0f - (2.0f * sinSquared));
+
+			ix3 += 3;
+		}
+	}
+	
+
+	// Rotates an array of points around the +y axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	public void yAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
+		//axisRotate(0.0f, 1.0f, 0.0f, new Double(thetaDeg).floatValue(), theCoords, numCoords);
+		yAxisRotate(new Double(thetaDeg).floatValue(), theCoords, numCoords);
+	}
+
+	// Rotates an array of points around the +z axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	/*
+	public void zAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
+		axisRotate(0.0f, 0.0f, 1.0f, thetaDeg, theCoords, numCoords);
+	}
+	*/
+
+	public void zAxisRotate(float thetaDeg, float theCoords[], int numCoords) {
+		
+		//float[][] rot_mtx = new float[3][3];
+		//getZRotMatrix((float) thetaDeg, rot_mtx);
+		
+		//final float cosAngle = (float) FastMath.cos(thetaDeg * 0.00872664625);
+		float sinSquared = (float) FastMath.sin(thetaDeg * 0.00872664625);
+		final float cossin = sinSquared * (float) FastMath.cos(thetaDeg * 0.00872664625);
+		sinSquared = sinSquared * sinSquared;
+
+		int ix3 = 0;
+		for (int i = 0; i < numCoords; i++) {
+			float tx = theCoords[ix3];
+			float ty = theCoords[ix3 + 1];
+			//float tz = theCoords[ix3 + 2];
+
+			theCoords[ix3] = tx * (1.0f - 2.0f * sinSquared)  + ty * (-2.0f * cossin);   //+ tz * rot_mtx[0][2];
+			theCoords[ix3 + 1] = tx * (2.0f * cossin) + ty * (1.0f - 2.0f * sinSquared); // + tz * rot_mtx[1][2];
+			//theCoords[ix3 + 2] = /*tx * rot_mtx[2][0] + ty * rot_mtx[2][1] +*/ tz; //* rot_mtx[2][2];
+
+			ix3 += 3;
+		}	
+	}
+
+	// Rotates an array of points around the +z axis
+	// using a right handed rotation of thetaDeg degrees
+	// theCoords are the coordinates where the ith coodinates
+	// are in position 3*i .. (3*(i+1))-1
+	public void zAxisRotate(double thetaDeg, float theCoords[], int numCoords) {
+		//axisRotate(0.0f, 0.0f, 1.0f, new Double(thetaDeg).floatValue(),theCoords, numCoords);
+		 zAxisRotate(new Double(thetaDeg).floatValue(),theCoords, numCoords);
+	}
+	
+    /*
     // Rotates an array of points around the +x axis
     // using a right handed rotation of thetaDeg degrees
     // theCoords are the coordinates where the ith coodinates
@@ -125,6 +246,7 @@ public class RotMatrix {
 	axisRotate(0.0f, 0.0f, 1.0f, new Double(thetaDeg).floatValue(),
 		theCoords, numCoords);
     }
+    */
 
     // Rotates an array of points around the axis ax, ay, az
     // using a right handed rotation of thetaDeg degrees
