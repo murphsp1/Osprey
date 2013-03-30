@@ -80,6 +80,7 @@
 
 import java.io.*;
 import java.util.*;
+import net.jafama.*;
 
 /**
  * This class handles the energy computation for a given molecule. The Amber
@@ -103,7 +104,9 @@ public class Amber96ext implements ForceField, Serializable {
 
     double dielectric = 1.0;
     boolean distDepDielect = true;
-    final double constCoulomb = 332.0;
+    final float constCoulomb = 332.0f;
+    final float INV_OF_2_PI_SQRTPI = (float) (1.0f / (2.0f * Math.PI * Math.sqrt(Math.PI)));
+
 
     Molecule m;
     int numberOfDihedralTerms = 0;
@@ -185,7 +188,8 @@ public class Amber96ext implements ForceField, Serializable {
     // Solvation interactions for atoms more than 9.0A apart are already counted
     // in dG(ref);
     // Only count solvation interactions between atoms within 9.0A distance
-    final double solvCutoff = 9.0;
+    final float solvCutoff = 9.0f;
+	final float solvCutoffSquared = 81.0f;
 
     double solvScale = 1.0; // the scale factor for the solvation energies
 
@@ -249,6 +253,27 @@ public class Amber96ext implements ForceField, Serializable {
 	solvScale = solvScFactor;
     }
 
+	//********
+	//this function is a complete hack, a fast inverse square root computation from John Carmack
+	private final static double fastSqrt(double x) {
+	    double xhalf = 0.5d*x;
+	    long i = Double.doubleToLongBits(x);
+	    i = 0x5fe6ec85e7de30daL - (i>>1);
+	    x = Double.longBitsToDouble(i);
+	    x = x*(1.5d - xhalf*x*x);
+	    return (1.0/x);
+	}
+	
+	private final static float fastInvSqrtFloat(float x) {
+	    float xhalf = 0.5f*x;
+	    int i = Float.floatToIntBits(x);
+	    i = 0x5f3759df - (i>>1);
+	    x = Float.intBitsToFloat(i);
+	    x = x*(1.5f - xhalf*x*x);
+	    return (x);
+	}
+    
+    
     // ************************************
     // This function reads the AMBER forcefield parameter file
     // parm96a.dat
@@ -1859,8 +1884,6 @@ public class Amber96ext implements ForceField, Serializable {
 	double rijx, rijy, rijz;
 	double chargei, chargej, Aij, Bij;
 	double coulombFactor;
-	float Eenergy[], Venergy[];
-	float Amult, Bmult;
 
 	int numHalfNBterms = 0;
 	int numNBterms = 0;
@@ -1886,31 +1909,28 @@ public class Amber96ext implements ForceField, Serializable {
 	    nbEv = partNBeval[curIndex];
 	}
 
-	Eenergy = new float[4];
-	Venergy = new float[4];
-	for (int i = 0; i < 4; i++) {
-	    Eenergy[i] = 0.0f;
-	    Venergy[i] = 0.0f;
-	}
+	float[] Eenergy = {0.0f, 0.0f, 0.0f, 0.0f};
+	float[] Venergy =  {0.0f, 0.0f, 0.0f, 0.0f};
+
 
 	// Note: Bmult = vdwMultiplier^6 and Amult = vdwMultiplier^12
-	Bmult = vdwMultiplier * vdwMultiplier;
+	float Bmult = vdwMultiplier * vdwMultiplier;
 	Bmult = Bmult * Bmult * Bmult;
-	Amult = Bmult * Bmult;
+	float Amult = Bmult * Bmult;
 
 	// half non-bonded terms
 	ix4 = -4;
 	// 1-4 electrostatic terms are scaled by 1/1.2
 	switch (EnvironmentVars.forcefld) {
 	case AMBER:
-	    coulombFactor = (constCoulomb / 1.2) / (dielectric);
+	    coulombFactor = (constCoulomb / 1.2f) / (dielectric);
 	    break;
 	case CHARMM19:
 	case CHARMM19NEUTRAL:
-	    coulombFactor = (constCoulomb * 0.4) / (dielectric);
+	    coulombFactor = (constCoulomb * 0.4f) / (dielectric);
 	    break;
 	default:
-	    coulombFactor = 0;
+	    coulombFactor = 0.0f;
 	    System.out.println("FORCEFIELD NOT RECOGNIZED!!!");
 	    System.exit(0);
 	    break;
