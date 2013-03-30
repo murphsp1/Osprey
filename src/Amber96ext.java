@@ -1894,8 +1894,8 @@ public class Amber96ext implements ForceField, Serializable {
 
 		int numHalfNBterms = 0;
 		int numNBterms = 0;
-		float halfNBterms[] = null;
-		float nbTerms[] = null;
+		double halfNBterms[] = null;
+		double nbTerms[] = null;
 		int halfNBev[] = null;
 		int nbEv[] = null;
 
@@ -1935,11 +1935,11 @@ public class Amber96ext implements ForceField, Serializable {
 		// 1-4 electrostatic terms are scaled by 1/1.2
 		switch (EnvironmentVars.forcefld) {
 		case AMBER:
-			coulombFactor = (constCoulomb / 1.2f) / (dielectric);
+			coulombFactor = (constCoulomb / 1.2f) / (float) (dielectric);
 			break;
 		case CHARMM19:
 		case CHARMM19NEUTRAL:
-			coulombFactor = (constCoulomb * 0.4f) / (dielectric);
+			coulombFactor = (constCoulomb * 0.4f) / (float) (dielectric);
 			break;
 		default:
 			coulombFactor = 0.0f;
@@ -2045,7 +2045,7 @@ public class Amber96ext implements ForceField, Serializable {
 
 		ix4 = -4;
 		// The full nonbonded electrostatic terms are NOT scaled down by 1/1.2
-		coulombFactor = (float) constCoulomb / (float) (dielectric);
+		coulombFactor =  constCoulomb / (float) (dielectric);
 		for (int i = 0; i < numNBterms; i++) {
 			ix4 += 4;
 			
