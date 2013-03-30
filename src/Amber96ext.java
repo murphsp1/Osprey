@@ -2079,74 +2079,97 @@ public class Amber96ext implements ForceField, Serializable {
     }
 
     // Calculates the solvation energies for the system with given coordinates[]
-    private void calculateSolvationEnergyFull(float coordinates[],
-	    double energyTerms[]) {
+	private void calculateSolvationEnergyFull(float coordinates[], double energyTerms[]) {
 
-	double energy = 0.0;
-	int atomix3, atomjx3, atomi, atomj;
-	double rij, rij2;
-	double rijx, rijy, rijz;
-	int indMult = 6;
+		double energy = 0.0;
+		//int atomix3, atomjx3, atomi, atomj;
+		//double rij, rij2, rijx, rijy, rijz;
+		final int indMult = 6;
 
-	int numSolvTerms = 0;
-	double solvTerms[] = null;
+		int numSolvTerms = numSolvationTerms;
+		
+		double solvTerms[] = null;
+		solvTerms = solvationTerms;
 
-	numSolvTerms = numSolvationTerms;
-	solvTerms = solvationTerms;
+		for (int i = 0; i < numSolvTerms; i++) {
 
-	for (int i = 0; i < numSolvTerms; i++) {
+			int i_indMult = i * indMult;
+			int atomi = (int) solvTerms[i * indMult];
+			int atomix3 = atomi * 3;
 
-	    atomi = (int) solvTerms[i * indMult];
-	    atomix3 = atomi * 3;
+			energy += solvTerms[i * indMult + 1]; // dGi(ref)
 
-	    energy += solvTerms[i * indMult + 1]; // dGi(ref)
+			float dGi_free = (float) solvTerms[i_indMult + 2]; // dGi(free)
+			float V_i = (float) solvTerms[i_indMult + 3]; // Vi
+			float lambda_i = (float) solvTerms[i_indMult + 4]; // lambdai
+			float vdWr_i = (float) solvTerms[i_indMult + 5]; // vdWri
+			
+			final float coords_atomix3 = coordinates[atomix3];
+			final float coords_atomix3_1 = coordinates[atomix3+1];			
+			final float coords_atomix3_2 = coordinates[atomix3+2];	
+			
+			//I need to fix all of this, create local array of solvExcludePairs[i] and then move everything to inside the conditional
+			
+			final boolean[] localSolvExcludePairs = solvExcludePairs[i];
+			
+			for (int j = i + 1; j < numSolvationTerms; j++) { 
+				// the pairwise solvation energies
 
-	    double dGi_free = solvTerms[i * indMult + 2]; // dGi(free)
-	    double V_i = solvTerms[i * indMult + 3]; // Vi
-	    double lambda_i = solvTerms[i * indMult + 4]; // lambdai
-	    double vdWr_i = solvTerms[i * indMult + 5]; // vdWri
+				// atoms 1 or 2 bonds apart are excluded from each other's
+				// calculation of solvation free energy
+				//if (!solvExcludePairs[i][j]) {
+				if (!localSolvExcludePairs[j]) {
 
-	    for (int j = i + 1; j < numSolvationTerms; j++) { // the pairwise
-							      // solvation
-							      // energies
+					int j_indMult = j*indMult;
+					int atomj = (int) solvationTerms[j * indMult];
+					int atomjx3 = atomj * 3;
 
-		atomj = (int) solvationTerms[j * indMult];
-		atomjx3 = atomj * 3;
+					//float rijx = coordinates[atomix3] - coordinates[atomjx3];
+					float rijx = coords_atomix3 - coordinates[atomjx3];
+					//float rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
+					float rijy = coords_atomix3_1  - coordinates[atomjx3 + 1];			
+					//float rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
+					float rijz =  coords_atomix3_2 - coordinates[atomjx3 + 2];	
+					float rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
+					
+					//float rij = fastSqrtFloat(rij2);
+					//double rij = Double.longBitsToDouble( ( ( Double.doubleToLongBits( rij2 )-(1l<<52) )));
+					
+					//if (rij < solvCutoff) {
+					/*Compare rij2 to squared cutoff .. this is valid because both are positive
+					 * because they are distances and solvCutoff is > 1
+					 */
+					if (rij2 < solvCutoffSquared) {
+						
+						float rij = (float) Math.sqrt(rij2); // distance between the two atoms
+						
+						float dGj_free = (float) solvationTerms[j_indMult + 2]; // dGj(free)
+						float V_j = (float) solvationTerms[j_indMult + 3]; // Vj
+						float lambda_j = (float) solvationTerms[j_indMult + 4]; // lambdaj
+						float vdWr_j = (float) solvationTerms[j_indMult + 5]; // vdWrj
 
-		// atoms 1 or 2 bonds apart are excluded from each other's
-		// calculation of solvation free energy
-		if (!solvExcludePairs[i][j]) {
+						//double coeff = 1 / (4 * Math.PI * Math.sqrt(Math.PI));
 
-		    rijx = coordinates[atomix3] - coordinates[atomjx3];
-		    rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
-		    rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
-		    rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-		    rij = Math.sqrt(rij2); // distance between the two atoms
+						float Xij = (rij - vdWr_i) / lambda_i;
+						float Xji = (rij - vdWr_j) / lambda_j;
 
-		    if (rij < solvCutoff) {
+						//energy -= ((2 * coeff * dGi_free * Math.exp(-Xij * Xij) * V_j)
+						//	/ (lambda_i * rij2) + 
+						//	(2 * coeff * dGj_free * Math.exp(-Xji * Xji) * V_i)
+						//	/ (lambda_j * rij2));
 
-			double dGj_free = solvationTerms[j * indMult + 2]; // dGj(free)
-			double V_j = solvationTerms[j * indMult + 3]; // Vj
-			double lambda_j = solvationTerms[j * indMult + 4]; // lambdaj
-			double vdWr_j = solvationTerms[j * indMult + 5]; // vdWrj
-
-			double coeff = 1 / (4 * Math.PI * Math.sqrt(Math.PI));
-
-			double Xij = (rij - vdWr_i) / lambda_i;
-			double Xji = (rij - vdWr_j) / lambda_j;
-
-			energy -= ((2 * coeff * dGi_free * Math.exp(-Xij * Xij) * V_j)
-				/ (lambda_i * rij2) + (2 * coeff * dGj_free
-				* Math.exp(-Xji * Xji) * V_i)
-				/ (lambda_j * rij2));
-		    }
+						energy -= ((INV_OF_2_PI_SQRTPI * dGi_free * FastMath.exp(-Xij * Xij) * V_j)
+								/ (lambda_i * rij2) + 
+								(INV_OF_2_PI_SQRTPI * dGj_free * FastMath.exp(-Xji * Xji) * V_i)
+								/ (lambda_j * rij2));	
+					}
+				}
+			}
 		}
-	    }
-	}
 
-	// store computed energy
-	energyTerms[3] = solvScale * energy; // solvation
-    }
+		// store computed energy
+		energyTerms[3] = solvScale * energy; // solvation
+	}
 
     // Calculates the solvation energies for the system with given coordinates[]
     private void calculateSolvationEnergyPart(float coordinates[],
