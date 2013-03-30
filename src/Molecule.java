@@ -1424,10 +1424,11 @@ public class Molecule implements Serializable {
 	int at2x3 = a2num * 3;
 	int at3x3 = a3num * 3;
 	int at4x3 = a4num * 3;
-	Atom pseudoAtom2 = new Atom("a2", actualCoordinates[at2x3]
-		- actualCoordinates[at3x3], actualCoordinates[at2x3 + 1]
-		- actualCoordinates[at3x3 + 1], actualCoordinates[at2x3 + 2]
-		- actualCoordinates[at3x3 + 2]);
+	
+	Atom pseudoAtom2 = new Atom(actualCoordinates[at2x3] - actualCoordinates[at3x3], 
+			actualCoordinates[at2x3 + 1] - actualCoordinates[at3x3 + 1], 
+			actualCoordinates[at2x3 + 2] - actualCoordinates[at3x3 + 2]);
+	
 	int numberOfCoordinates = 0;
 	int atomListLength = 0;
 	int atomNumber;
@@ -1442,12 +1443,9 @@ public class Molecule implements Serializable {
 	// array of atom numbers to be rotated
 	float temporaryCoordinates[] = new float[numberOfCoordinatesx3];
 	// store atom 4 as first entry in array
-	temporaryCoordinates[0] = actualCoordinates[at4x3]
-		- actualCoordinates[at3x3];
-	temporaryCoordinates[1] = actualCoordinates[at4x3 + 1]
-		- actualCoordinates[at3x3 + 1];
-	temporaryCoordinates[2] = actualCoordinates[at4x3 + 2]
-		- actualCoordinates[at3x3 + 2];
+	temporaryCoordinates[0] = actualCoordinates[at4x3] - actualCoordinates[at3x3];
+	temporaryCoordinates[1] = actualCoordinates[at4x3 + 1] - actualCoordinates[at3x3 + 1];
+	temporaryCoordinates[2] = actualCoordinates[at4x3 + 2] - actualCoordinates[at3x3 + 2];
 	// translate all other atoms by -a3
 	for (int i = 0, ix3, atx3; i < atomListLength; i++) {
 	    atomNumber = atomList[i];
