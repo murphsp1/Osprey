@@ -1875,198 +1875,276 @@ public class Amber96ext implements ForceField, Serializable {
     // 1 - compute both elect and vdw terms
     // 2 - compute only elect term
     // 3 - compute only vdw term
-    private void calculateEVEnergy(float coordinates[], int curIndex,
-	    double energyTerms[]) {
+    private void calculateEVEnergy(float coordinates[], int curIndex, double energyTerms[]) {
 
-	int atomix3, atomjx3, atomi, atomj;
-	int ix4;
-	double rij, rij2, rij6, rij12, coulombTerm, vdwTerm;
-	double rijx, rijy, rijz;
-	double chargei, chargej, Aij, Bij;
-	double coulombFactor;
+		//int atomix3, atomjx3, atomi, atomj;
+		int ix4;
+		//double rij, rij2, rij6, rij12;
+			
+		//double rijx, rijy, rijz;
+		//double chargei, chargej, Aij, Bij;
+		
+		//double coulombFactor;
+		//float coulombFactor;
+		
+		//double coulombTerm, vdwTerm;
+		float coulombTerm, vdwTerm, coulombFactor;
+		
+		//float Eenergy[], Venergy[];
 
-	int numHalfNBterms = 0;
-	int numNBterms = 0;
-	double halfNBterms[] = null;
-	double nbTerms[] = null;
-	int halfNBev[] = null;
-	int nbEv[] = null;
+		int numHalfNBterms = 0;
+		int numNBterms = 0;
+		float halfNBterms[] = null;
+		float nbTerms[] = null;
+		int halfNBev[] = null;
+		int nbEv[] = null;
 
-	if (curIndex == -1) { // full energy is computed
-	    numHalfNBterms = numHalfNonBondedTerms;
-	    halfNBterms = halfNonBondedTerms;
-	    halfNBev = halfNBeval;
-	    numNBterms = numberNonBonded;
-	    nbTerms = nonBondedTerms;
-	    nbEv = NBeval;
-	} else { // partial energy is computed, based on flexible residue
-		 // curIndex
-	    numHalfNBterms = numPartHalfNonBonded[curIndex];
-	    halfNBterms = partHalfNonBonded[curIndex];
-	    halfNBev = partHalfNBeval[curIndex];
-	    numNBterms = numPartNonBonded[curIndex];
-	    nbTerms = partNonBonded[curIndex];
-	    nbEv = partNBeval[curIndex];
-	}
-
-	float[] Eenergy = {0.0f, 0.0f, 0.0f, 0.0f};
-	float[] Venergy =  {0.0f, 0.0f, 0.0f, 0.0f};
-
-
-	// Note: Bmult = vdwMultiplier^6 and Amult = vdwMultiplier^12
-	float Bmult = vdwMultiplier * vdwMultiplier;
-	Bmult = Bmult * Bmult * Bmult;
-	float Amult = Bmult * Bmult;
-
-	// half non-bonded terms
-	ix4 = -4;
-	// 1-4 electrostatic terms are scaled by 1/1.2
-	switch (EnvironmentVars.forcefld) {
-	case AMBER:
-	    coulombFactor = (constCoulomb / 1.2f) / (dielectric);
-	    break;
-	case CHARMM19:
-	case CHARMM19NEUTRAL:
-	    coulombFactor = (constCoulomb * 0.4f) / (dielectric);
-	    break;
-	default:
-	    coulombFactor = 0.0f;
-	    System.out.println("FORCEFIELD NOT RECOGNIZED!!!");
-	    System.exit(0);
-	    break;
-	}
-
-	double tmpCoulFact;
-	for (int i = 0; i < numHalfNBterms; i++) {
-	    ix4 += 4;
-	    atomi = (int) halfNBterms[ix4];
-	    atomj = (int) halfNBterms[ix4 + 1];
-	    Aij = halfNBterms[ix4 + 2] * Amult;
-	    Bij = halfNBterms[ix4 + 3] * Bmult;
-	    chargei = m.atom[atomi].charge;
-	    chargej = m.atom[atomj].charge;
-	    atomix3 = atomi * 3;
-	    atomjx3 = atomj * 3;
-	    rijx = coordinates[atomix3] - coordinates[atomjx3];
-	    rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
-	    rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
-
-	    rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-	    rij = Math.sqrt(rij2);
-	    rij6 = rij2 * rij2 * rij2;
-	    rij12 = rij6 * rij6;
-
-	    // coulombFactor = (constCoulomb/1.2) / (dielectric);
-	    tmpCoulFact = coulombFactor;
-	    if (distDepDielect) // distance-dependent dielectric
-		tmpCoulFact /= rij;
-
-	    coulombTerm = (chargei * chargej * tmpCoulFact) / rij;
-	    vdwTerm = Aij / rij12 - Bij / rij6;
-
-	    // This is not the fastest way to do this, but based on the
-	    // halfNBeval array either the elect or vdw energies might
-	    // not be counted
-	    if (halfNBev[i] == 2)
-		vdwTerm = 0.0;
-	    else if (halfNBev[i] == 3)
-		coulombTerm = 0.0;
-	    else if (halfNBev[i] == 0) {
-		vdwTerm = 0.0;
-		coulombTerm = 0.0;
-	    }
-	    Eenergy[0] += coulombTerm;
-	    Venergy[0] += vdwTerm;
-	    if (m.atom[atomi].moleculeResidueNumber == ligandNum) {
-		if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
-		    // L-L
-		    Eenergy[3] += coulombTerm;
-		    Venergy[3] += vdwTerm;
-		} else {
-		    // P-L
-		    Eenergy[2] += coulombTerm;
-		    Venergy[2] += vdwTerm;
+		if (curIndex == -1) { // full energy is computed
+			numHalfNBterms = numHalfNonBondedTerms;
+			halfNBterms = halfNonBondedTerms;
+			halfNBev = halfNBeval;
+			numNBterms = numberNonBonded;
+			nbTerms = nonBondedTerms;
+			nbEv = NBeval;
+		} else { // partial energy is computed, based on flexible residue
+			// curIndex
+			numHalfNBterms = numPartHalfNonBonded[curIndex];
+			halfNBterms = partHalfNonBonded[curIndex];
+			halfNBev = partHalfNBeval[curIndex];
+			numNBterms = numPartNonBonded[curIndex];
+			nbTerms = partNonBonded[curIndex];
+			nbEv = partNBeval[curIndex];
 		}
-	    } else if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
-		// P-L
-		Eenergy[2] += coulombTerm;
-		Venergy[2] += vdwTerm;
-	    } else {
-		// P-P
-		Eenergy[1] += coulombTerm;
-		Venergy[1] += vdwTerm;
-	    }
-	}
 
-	ix4 = -4;
-	// The full nonbonded electrostatic terms are NOT scaled down by 1/1.2
-	coulombFactor = constCoulomb / (dielectric);
-	for (int i = 0; i < numNBterms; i++) {
-	    ix4 += 4;
-	    atomi = (int) nbTerms[ix4];
-	    atomj = (int) nbTerms[ix4 + 1];
-
-	    Aij = nbTerms[ix4 + 2] * Amult;
-	    Bij = nbTerms[ix4 + 3] * Bmult;
-	    chargei = m.atom[atomi].charge;
-	    chargej = m.atom[atomj].charge;
-	    atomix3 = atomi * 3;
-	    atomjx3 = atomj * 3;
-	    rijx = coordinates[atomix3] - coordinates[atomjx3];
-	    rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
-	    rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
-	    rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
-	    rij = Math.sqrt(rij2);
-	    rij6 = rij2 * rij2 * rij2;
-	    rij12 = rij6 * rij6;
-
-	    // coulombFactor = constCoulomb / (dielectric);
-	    tmpCoulFact = coulombFactor;
-	    if (distDepDielect) // distance-dependent dielectric
-		tmpCoulFact /= rij;
-
-	    coulombTerm = (chargei * chargej * tmpCoulFact) / rij;
-	    vdwTerm = Aij / rij12 - Bij / rij6;
-
-	    // This is not the fastest way to do this, but based on the
-	    // NBeval array either the elect or vdw energies might
-	    // not be counted
-	    if (nbEv[i] == 2)
-		vdwTerm = 0.0;
-	    else if (nbEv[i] == 3)
-		coulombTerm = 0.0;
-	    else if (nbEv[i] == 0) {
-		vdwTerm = 0.0;
-		coulombTerm = 0.0;
-	    }
-	    Eenergy[0] += coulombTerm;
-	    Venergy[0] += vdwTerm;
-	    if (m.atom[atomi].moleculeResidueNumber == ligandNum) {
-		if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
-		    // L-L
-		    Eenergy[3] += coulombTerm;
-		    Venergy[3] += vdwTerm;
-		} else {
-		    // P-L
-		    Eenergy[2] += coulombTerm;
-		    Venergy[2] += vdwTerm;
+		float[] Eenergy = {0.0f, 0.0f, 0.0f, 0.0f};
+		float[] Venergy =  {0.0f, 0.0f, 0.0f, 0.0f};
+		/*
+		for (int i = 0; i < 4; i++) {
+			Eenergy[i] = 0.0f;
+			Venergy[i] = 0.0f;
 		}
-	    } else if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
-		// P-L
-		Eenergy[2] += coulombTerm;
-		Venergy[2] += vdwTerm;
-	    } else {
-		// P-P
-		Eenergy[1] += coulombTerm;
-		Venergy[1] += vdwTerm;
-	    }
+		*/
+
+		// Note: Bmult = vdwMultiplier^6 and Amult = vdwMultiplier^12
+		float Bmult = vdwMultiplier * vdwMultiplier;
+		Bmult = Bmult * Bmult * Bmult;
+		float Amult = Bmult * Bmult;
+
+		// half non-bonded terms
+		ix4 = -4;
+		// 1-4 electrostatic terms are scaled by 1/1.2
+		switch (EnvironmentVars.forcefld) {
+		case AMBER:
+			coulombFactor = (constCoulomb / 1.2f) / (dielectric);
+			break;
+		case CHARMM19:
+		case CHARMM19NEUTRAL:
+			coulombFactor = (constCoulomb * 0.4f) / (dielectric);
+			break;
+		default:
+			coulombFactor = 0.0f;
+			System.out.println("FORCEFIELD NOT RECOGNIZED!!!");
+			System.exit(0);
+			break;
+		}
+
+		//float tmpCoulFact;
+		
+		for (int i = 0; i < numHalfNBterms; i++) {
+			ix4 += 4;
+			
+			//Sean - check this immediately and skip if possible
+			if (halfNBev[i] == 0) {
+				continue;
+			}
+
+			int atomi = (int) halfNBterms[ix4];
+			int atomj = (int) halfNBterms[ix4 + 1];
+			
+			float Aij = (float) halfNBterms[ix4 + 2] * Amult;
+			float Bij = (float) halfNBterms[ix4 + 3] * Bmult;
+			float chargei = m.atom[atomi].charge;
+			float chargej = m.atom[atomj].charge;
+			
+			int atomix3 = atomi * 3;
+			int atomjx3 = atomj * 3;
+			
+			float rijx = coordinates[atomix3] - coordinates[atomjx3];
+			float rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
+			float rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
+
+			float rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
+			//float rij = (float) Math.sqrt(rij2);
+			//float rij = fastSqrtFloat(rij2);
+			float rij6 = rij2 * rij2 * rij2;
+			float rij12 = rij6 * rij6;
+
+			/*
+			// coulombFactor = (constCoulomb/1.2) / (dielectric);
+			tmpCoulFact = coulombFactor;
+			if (distDepDielect) // distance-dependent dielectric
+				tmpCoulFact /= rij;
+
+			coulombTerm = (chargei * chargej * tmpCoulFact) / rij;
+			*/
+			
+			if (distDepDielect) {// distance-dependent dielectric {
+				//tmpCoulFact /= rij;
+				coulombTerm = chargei * chargej * coulombFactor / rij2;
+			} else {
+				//coulombTerm = chargei * chargej * coulombFactor * fastInvSqrtFloat(rij2);
+				coulombTerm = chargei * chargej * coulombFactor / (float) Math.sqrt(rij2);
+			}
+			
+			//vdwTerm = Aij / rij12 - Bij / rij6;
+			//Below is the same thing but with fewer divides so is faster
+			vdwTerm = (Aij - Bij * rij6) / rij12;
+			
+			// This is not the fastest way to do this, but based on the
+			// halfNBeval array either the elect or vdw energies might
+			// not be counted
+			// Sean ... converted all of these to floats because energy is float as well
+			if (halfNBev[i] == 2) {
+				vdwTerm = 0.0f;
+			} else if (halfNBev[i] == 3) {
+				coulombTerm = 0.0f;
+			}
+			
+			/*
+			else if (halfNBev[i] == 0) {
+				vdwTerm = 0.0f;
+				coulombTerm = 0.0f;
+			}
+			*/
+			
+			Eenergy[0] += coulombTerm;
+			Venergy[0] += vdwTerm;
+			
+			/*
+			if (m.atom[atomi].moleculeResidueNumber == ligandNum) {
+				if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
+					// L-L
+					Eenergy[3] += coulombTerm;
+					Venergy[3] += vdwTerm;
+				} else {
+					// P-L
+					Eenergy[2] += coulombTerm;
+					Venergy[2] += vdwTerm;
+				}
+			} else if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
+				// P-L
+				Eenergy[2] += coulombTerm;
+				Venergy[2] += vdwTerm;
+			} else {
+				// P-P
+				Eenergy[1] += coulombTerm;
+				Venergy[1] += vdwTerm;
+			}
+			*/
+		}
+
+		ix4 = -4;
+		// The full nonbonded electrostatic terms are NOT scaled down by 1/1.2
+		coulombFactor = (float) constCoulomb / (float) (dielectric);
+		for (int i = 0; i < numNBterms; i++) {
+			ix4 += 4;
+			
+			if (nbEv[i] == 0) {
+				continue;
+			}
+			
+			int atomi = (int) nbTerms[ix4];
+			int atomj = (int) nbTerms[ix4 + 1];
+
+			float Aij = (float) nbTerms[ix4 + 2] * Amult;
+			float Bij = (float) nbTerms[ix4 + 3] * Bmult;
+			float chargei = m.atom[atomi].charge;
+			float chargej = m.atom[atomj].charge;
+			
+			int atomix3 = atomi * 3;
+			int atomjx3 = atomj * 3;
+			
+			float rijx = coordinates[atomix3] - coordinates[atomjx3];
+			float rijy = coordinates[atomix3 + 1] - coordinates[atomjx3 + 1];
+			float rijz = coordinates[atomix3 + 2] - coordinates[atomjx3 + 2];
+			
+			float rij2 = rijx * rijx + rijy * rijy + rijz * rijz;
+			//Sean - Don't do the sqrt unless we actually need it.
+			//float rij = (float) Math.sqrt(rij2);
+			
+			float rij6 = rij2 * rij2 * rij2;
+			float rij12 = rij6 * rij6;
+
+			// coulombFactor = constCoulomb / (dielectric);
+			/*ORIGINAL CODE
+			tmpCoulFact = coulombFactor;
+			if (distDepDielect) // distance-dependent dielectric {
+				tmpCoulFact /= rij;
+			
+			coulombTerm = (chargei * chargej * tmpCoulFact) / rij;
+			*/
+			//tmpCoulFact = coulombFactor;
+			/*Sean
+			 * rewrote this to avoid the square root if possible
+			 */
+			if (distDepDielect) {// distance-dependent dielectric {
+				//tmpCoulFact /= rij;
+				coulombTerm = chargei * chargej * coulombFactor / rij2;
+			} else {
+				//coulombTerm = chargei * chargej * coulombFactor * fastInvSqrtFloat(rij2);
+				coulombTerm = chargei * chargej * coulombFactor / (float) Math.sqrt(rij2);
+			}
+			
+			//vdwTerm = Aij / rij12 - Bij / rij6;
+			//Below is the same thing but with fewer divides so is faster
+			vdwTerm = (Aij - Bij * rij6) / rij12;
+
+			// This is not the fastest way to do this, but based on the
+			// NBeval array either the elect or vdw energies might
+			// not be counted
+			if (nbEv[i] == 2)
+				vdwTerm = 0.0f;
+			else if (nbEv[i] == 3)
+				coulombTerm = 0.0f;
+			/*this case is now handled at the top of the loop
+			else if (nbEv[i] == 0) {
+				vdwTerm = 0.0f;
+				coulombTerm = 0.0f;
+			}
+			*/
+			
+			Eenergy[0] += coulombTerm;
+			Venergy[0] += vdwTerm;
+			
+			/*Interestingly, this code appears to set values that are never again used
+			if (m.atom[atomi].moleculeResidueNumber == ligandNum) {
+				if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
+					// L-L
+					Eenergy[3] += coulombTerm;
+					Venergy[3] += vdwTerm;
+				} else {
+					// P-L
+					Eenergy[2] += coulombTerm;
+					Venergy[2] += vdwTerm;
+				}
+			} else if (m.atom[atomj].moleculeResidueNumber == ligandNum) {
+				// P-L
+				Eenergy[2] += coulombTerm;
+				Venergy[2] += vdwTerm;
+			} else {
+				// P-P
+				Eenergy[1] += coulombTerm;
+				Venergy[1] += vdwTerm;
+			}
+			*/
+		}
+
+		// store computed energies
+		energyTerms[1] = Eenergy[0]; // electrostatics
+		energyTerms[2] = Venergy[0]; // vdW
 	}
-
-	// store computed energies
-	energyTerms[1] = Eenergy[0]; // electrostatics
-	energyTerms[2] = Venergy[0]; // vdW
-    }
-
+    
+    
     // Calculates the solvation energies for the system with given coordinates[]
     private void calculateSolvationEnergy(float coordinates[], int curIndex,
 	    double energyTerms[]) {
