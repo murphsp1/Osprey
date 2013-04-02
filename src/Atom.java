@@ -87,34 +87,34 @@ import net.jafama.*;
  */
 public class Atom implements Serializable {
 
-    int moleculeAtomNumber = -1; // the atom number in this molecule
-    int residueAtomNumber = -1; // the atom number within this residue
-    int modelAtomNumber = -1; // a temp variable used on writing to file
-    int moleculeResidueNumber = -1; // the number of the residue containing this
-				    // atom
-    int strandResidueNumber = -1; // the strand relative number of the residue
-				  // continaing atom
-    int strandNumber = -1; // the number of the strand containing atom
-    int bond[]; // arrays of indices for bonded atoms
-    int elementNumber = 0; // element number
-    int numberOfBonds = 0; // the number of bonds
-    String elementType = ""; // the element symbol
-    String forceFieldType = ""; // the force field type symbol
-    int type = -1; // the force field type number
-    boolean selected = true;
-    String name; // the atom name ie. CA, CB, CG, ...
-    String segID = ""; // the atom segment id, specifically included for the
-		       // molecular replacement proj
-    float charge = 0.0f; // atomic charge
-    int radius = 170; // vdw radii in pm (100pm=1A)
-    double mass; // atomic mass
-    float coord[] = new float[3]; // atomic coordinates
-    boolean isBBatom = false;
+	int moleculeAtomNumber = -1; // the atom number in this molecule
+	int residueAtomNumber = -1; // the atom number within this residue
+	int modelAtomNumber = -1; // a temp variable used on writing to file
+	int moleculeResidueNumber = -1; // the number of the residue containing this
+	// atom
+	int strandResidueNumber = -1; // the strand relative number of the residue
+	// continaing atom
+	int strandNumber = -1; // the number of the strand containing atom
+	int bond[]; // arrays of indices for bonded atoms
+	int elementNumber = 0; // element number
+	int numberOfBonds = 0; // the number of bonds
+	String elementType = ""; // the element symbol
+	String forceFieldType = ""; // the force field type symbol
+	int type = -1; // the force field type number
+	boolean selected = true;
+	String name; // the atom name ie. CA, CB, CG, ...
+	String segID = ""; // the atom segment id, specifically included for the
+	// molecular replacement proj
+	float charge = 0.0f; // atomic charge
+	int radius = 170; // vdw radii in pm (100pm=1A)
+	double mass; // atomic mass
+	float coord[] = new float[3]; // atomic coordinates
+	boolean isBBatom = false;
 
-    Atom() {
-    }
-    
-    /*Sean - created a new constructor for Atom to handle the case where temporary atoms are 
+	Atom() {
+	}
+	
+	/*Sean - created a new constructor for Atom to handle the case where temporary atoms are 
 	 * created with no meaningful name. This constructor avoids the intensely painful 
 	 * setProperties() method
 	 */
@@ -124,63 +124,62 @@ public class Atom implements Serializable {
 		coord[2] = zpos;
 	}
 
-    Atom(String atomName, float xpos, float ypos, float zpos) {
-	name = atomName;
-	setProperties();
-	coord[0] = xpos;
-	coord[1] = ypos;
-	coord[2] = zpos;
+	Atom(String atomName, float xpos, float ypos, float zpos) {
+		name = atomName;
+		setProperties();
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
 
-	isBBatom = setIsBBatom();
-    }
+		isBBatom = setIsBBatom();
+	}
 
-    Atom(String atomName, float xpos, float ypos, float zpos, String ffType) {
-	name = atomName;
-	setProperties();
-	coord[0] = xpos;
-	coord[1] = ypos;
-	coord[2] = zpos;
-	forceFieldType = ffType;
+	Atom(String atomName, float xpos, float ypos, float zpos, String ffType) {
+		name = atomName;
+		setProperties();
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
+		forceFieldType = ffType;
 
-	isBBatom = setIsBBatom();
-    }
+		isBBatom = setIsBBatom();
+	}
 
-    Atom(String atomName, float xpos, float ypos, float zpos, float thecharge) {
-	name = atomName;
-	setProperties();
-	coord[0] = xpos;
-	coord[1] = ypos;
-	coord[2] = zpos;
-	charge = thecharge;
+	Atom(String atomName, float xpos, float ypos, float zpos, float thecharge) {
+		name = atomName;
+		setProperties();
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
+		charge = thecharge;
 
-	isBBatom = setIsBBatom();
-    }
+		isBBatom = setIsBBatom();
+	}
 
-    Atom(String atomName, float xpos, float ypos, float zpos, float thecharge,
-	    String ffType) {
-	name = atomName;
-	setProperties();
-	coord[0] = xpos;
-	coord[1] = ypos;
-	coord[2] = zpos;
-	forceFieldType = ffType;
-	charge = thecharge;
+	Atom(String atomName, float xpos, float ypos, float zpos, float thecharge,
+			String ffType) {
+		name = atomName;
+		setProperties();
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
+		forceFieldType = ffType;
+		charge = thecharge;
+		isBBatom = setIsBBatom();
+	}
 
-	isBBatom = setIsBBatom();
-    }
+	// Changes the atom name and sets the atom properties element number,
+	// element type, radii, and mass
+	public void changeType(String newName) {
+		name = newName;
+		setProperties();
+	}
 
-    // Changes the atom name and sets the atom properties element number,
-    // element type, radii, and mass
-    public void changeType(String newName) {
-	name = newName;
-	setProperties();
-    }
-
-    // Sets default properties such as radii, element number, mass, element type
-    // RHL I don't know where the radii values come from but they are good
-    // estimates
-    // usually atoms will be assigned better information from a forcefield
-    
+	// Sets default properties such as radii, element number, mass, element type
+	// RHL I don't know where the radii values come from but they are good
+	// estimates
+	// usually atoms will be assigned better information from a forcefield
+	
 	/* Sean - this method is quite painful because it is giant list of string searches, which
 	 * can consume 10% of overal execution time. I reordered some of the entries, preserving 
 	 * the overall logic and sequence but hopefully allowing some of the more common atoms
@@ -769,98 +768,97 @@ public class Atom implements Serializable {
 		}
 	}
 
-
-    // Adds a bond from this atom to atom number j
-    // If we're in a molecule then j should be molecule based
-    public void addBond(int j) {
-	if (bond == null) {
-	    bond = new int[++numberOfBonds];
-	    bond[0] = j;
-	} else {
-	    // If we already have a bond to this atom we're done
-	    if (bondedTo(j))
-		return;
-	    int newBond[] = new int[++numberOfBonds];
-	    System.arraycopy(bond, 0, newBond, 0, bond.length);
-	    bond = newBond;
-	    bond[numberOfBonds - 1] = j;
+	// Adds a bond from this atom to atom number j
+	// If we're in a molecule then j should be molecule based
+	public void addBond(int j) {
+		if (bond == null) {
+			bond = new int[++numberOfBonds];
+			bond[0] = j;
+		} else {
+			// If we already have a bond to this atom we're done
+			if (bondedTo(j))
+				return;
+			int newBond[] = new int[++numberOfBonds];
+			System.arraycopy(bond, 0, newBond, 0, bond.length);
+			bond = newBond;
+			bond[numberOfBonds - 1] = j;
+		}
 	}
-    }
 
-    // Deletes the jth bond of this atom
-    // *NOTE j is not an atom number, it is an index into the
-    // bond array
-    public void deleteBond(int j) {
-	if (numberOfBonds == 0)
-	    return;
-	int smallerBondArray[] = new int[numberOfBonds - 1];
-	if (numberOfBonds > 1) {
-	    System.arraycopy(bond, 0, smallerBondArray, 0, j);
-	    if (j < numberOfBonds - 1)
-		System.arraycopy(bond, j + 1, smallerBondArray, j, bond.length
-			- j - 1);
+	// Deletes the jth bond of this atom
+	// *NOTE j is not an atom number, it is an index into the
+	// bond array
+	public void deleteBond(int j) {
+		if (numberOfBonds == 0)
+			return;
+		int smallerBondArray[] = new int[numberOfBonds - 1];
+		if (numberOfBonds > 1) {
+			System.arraycopy(bond, 0, smallerBondArray, 0, j);
+			if (j < numberOfBonds - 1)
+				System.arraycopy(bond, j + 1, smallerBondArray, j, bond.length
+						- j - 1);
+		}
+		bond = smallerBondArray;
+		numberOfBonds--;
 	}
-	bond = smallerBondArray;
-	numberOfBonds--;
-    }
 
-    // Deletes the bond to atom number atomj
-    // If we're in a molecule atomj should be molecule based
-    public void deleteBondTo(int atomj) {
-	int j;
-	for (j = 0; j < numberOfBonds; j++)
-	    if (bond[j] == atomj) {
-		deleteBond(j);
-		j--;
-	    }
-    }
-
-    // Adds two bonds, one each to atoms j and k
-    // Nothing fancy, this just makes it easier to add multiple bonds
-    public void addBond(int j, int k) {
-	addBond(j);
-	addBond(k);
-    }
-
-    // Adds two bonds, one each to atoms j, k, and l
-    // Nothing fancy, this just makes it easier to add multiple bonds
-    public void addBond(int j, int k, int l) {
-	addBond(j);
-	addBond(k);
-	addBond(l);
-    }
-
-    // Adds four bonds, one each to atoms j, k, l, and m
-    // Nothing fancy, this just makes it easier to add multiple bonds
-    public void addBond(int j, int k, int l, int m) {
-	addBond(j);
-	addBond(k);
-	addBond(l);
-	addBond(m);
-    }
-
-    // Returns true/false, is this atom bonded to atom j
-    public boolean bondedTo(int j) {
-	for (int i = 0; i < numberOfBonds; i++) {
-	    if (bond[i] == j)
-		return true;
+	// Deletes the bond to atom number atomj
+	// If we're in a molecule atomj should be molecule based
+	public void deleteBondTo(int atomj) {
+		int j;
+		for (j = 0; j < numberOfBonds; j++)
+			if (bond[j] == atomj) {
+				deleteBond(j);
+				j--;
+			}
 	}
-	return false;
-    }
 
-    // Returns the distance from this atom to the specified atom
-    public double distance(Atom atom) {
-	return (Math.sqrt((coord[0] - atom.coord[0])
-		* (coord[0] - atom.coord[0]) + (coord[1] - atom.coord[1])
-		* (coord[1] - atom.coord[1]) + (coord[2] - atom.coord[2])
-		* (coord[2] - atom.coord[2])));
-    }
+	// Adds two bonds, one each to atoms j and k
+	// Nothing fancy, this just makes it easier to add multiple bonds
+	public void addBond(int j, int k) {
+		addBond(j);
+		addBond(k);
+	}
 
-    // This returns the right handed rotation angle around the +x
-    // axis where the -z axis is the 0. (0..360)
-    // This was not written by me, but I have checked it
+	// Adds two bonds, one each to atoms j, k, and l
+	// Nothing fancy, this just makes it easier to add multiple bonds
+	public void addBond(int j, int k, int l) {
+		addBond(j);
+		addBond(k);
+		addBond(l);
+	}
+
+	// Adds four bonds, one each to atoms j, k, l, and m
+	// Nothing fancy, this just makes it easier to add multiple bonds
+	public void addBond(int j, int k, int l, int m) {
+		addBond(j);
+		addBond(k);
+		addBond(l);
+		addBond(m);
+	}
+
+	// Returns true/false, is this atom bonded to atom j
+	public boolean bondedTo(int j) {
+		for (int i = 0; i < numberOfBonds; i++) {
+			if (bond[i] == j)
+				return true;
+		}
+		return false;
+	}
+
+	// Returns the distance from this atom to the specified atom
+	public double distance(Atom atom) {
+		return (Math.sqrt((coord[0] - atom.coord[0])
+				* (coord[0] - atom.coord[0]) + (coord[1] - atom.coord[1])
+				* (coord[1] - atom.coord[1]) + (coord[2] - atom.coord[2])
+				* (coord[2] - atom.coord[2])));
+	}
+
+	// This returns the right handed rotation angle around the +x
+	// axis where the -z axis is the 0. (0..360)
+	// This was not written by me, but I have checked it
 	public double angleAboutXAxis() {
-		final double R2D = 57.29577951308232090712;
+		double R2D = 57.29577951308232090712;
 		//double distance = Math.sqrt(coord[0] * coord[0] + coord[1] * coord[1] + coord[2] * coord[2]);
 		double yComponent = coord[1]; // distance;
 		double zComponent = coord[2]; // distance;
@@ -961,15 +959,13 @@ public class Atom implements Serializable {
 		}
 		return (theta);
 	}
-    
 
-    // Returns the angle (in degrees) made between atom1-atom2-thisatom
-    // This was not written by me, but I have checked it
-    public double angle(Atom atom1, Atom atom2) {
-	double R2D = 57.29577951308232090712;
-	return (R2D * angleInRadians(atom1, atom2));
-    }
-
+	// Returns the angle (in degrees) made between atom1-atom2-thisatom
+	// This was not written by me, but I have checked it
+	public double angle(Atom atom1, Atom atom2) {
+		double R2D = 57.29577951308232090712;
+		return (R2D * angleInRadians(atom1, atom2));
+	}
 
 	// Returns the angle (in radians) made between atom1-atom2-thisatom
 	// This was not written by me, but I have checked it
@@ -1001,78 +997,78 @@ public class Atom implements Serializable {
 		return (FastMath.acos(dp));
 	}
 
-    // Returns the torsion angle (in degrees) made between
-    // atom1-atom2-atom3-thisatom
-    // This was not written by me, but I have checked it
-    // If all 4 atoms lie in a plane and the first and fourth
-    // atoms are trans then 180 is returned, if they are cis
-    // then 0 is returned.
-    // Between these two extremes, the angle of the right
-    // handed rotation where the axis is the vector from
-    // atom2 to atom3 (ie thumb points to atom3) is returned.
-    // The returned angle is between -180-epsilon .. +180
-    public double torsion(Atom atom1, Atom atom2, Atom atom3) {
-	double xij, yij, zij;
-	double xkj, ykj, zkj;
-	double xkl, ykl, zkl;
-	double dx, dy, dz;
-	double gx, gy, gz;
-	double bi, bk;
-	double ct, d, ap, app, bibk;
+	// Returns the torsion angle (in degrees) made between
+	// atom1-atom2-atom3-thisatom
+	// This was not written by me, but I have checked it
+	// If all 4 atoms lie in a plane and the first and fourth
+	// atoms are trans then 180 is returned, if they are cis
+	// then 0 is returned.
+	// Between these two extremes, the angle of the right
+	// handed rotation where the axis is the vector from
+	// atom2 to atom3 (ie thumb points to atom3) is returned.
+	// The returned angle is between -180-epsilon .. +180
+	public double torsion(Atom atom1, Atom atom2, Atom atom3) {
+		double xij, yij, zij;
+		double xkj, ykj, zkj;
+		double xkl, ykl, zkl;
+		double dx, dy, dz;
+		double gx, gy, gz;
+		double bi, bk;
+		double ct, d, ap, app, bibk;
 
-	xij = atom1.coord[0] - atom2.coord[0];
-	yij = atom1.coord[1] - atom2.coord[1];
-	zij = atom1.coord[2] - atom2.coord[2];
-	xkj = atom3.coord[0] - atom2.coord[0];
-	ykj = atom3.coord[1] - atom2.coord[1];
-	zkj = atom3.coord[2] - atom2.coord[2];
-	xkl = atom3.coord[0] - coord[0];
-	ykl = atom3.coord[1] - coord[1];
-	zkl = atom3.coord[2] - coord[2];
+		xij = atom1.coord[0] - atom2.coord[0];
+		yij = atom1.coord[1] - atom2.coord[1];
+		zij = atom1.coord[2] - atom2.coord[2];
+		xkj = atom3.coord[0] - atom2.coord[0];
+		ykj = atom3.coord[1] - atom2.coord[1];
+		zkj = atom3.coord[2] - atom2.coord[2];
+		xkl = atom3.coord[0] - coord[0];
+		ykl = atom3.coord[1] - coord[1];
+		zkl = atom3.coord[2] - coord[2];
 
-	// d = ij cross kj
-	// g = kl cross kj
-	dx = yij * zkj - zij * ykj;
-	dy = zij * xkj - xij * zkj;
-	dz = xij * ykj - yij * xkj;
-	gx = zkj * ykl - ykj * zkl;
-	gy = xkj * zkl - zkj * xkl;
-	gz = ykj * xkl - xkj * ykl;
+		// d = ij cross kj
+		// g = kl cross kj
+		dx = yij * zkj - zij * ykj;
+		dy = zij * xkj - xij * zkj;
+		dz = xij * ykj - yij * xkj;
+		gx = zkj * ykl - ykj * zkl;
+		gy = xkj * zkl - zkj * xkl;
+		gz = ykj * xkl - xkj * ykl;
 
-	bi = dx * dx + dy * dy + dz * dz; // magnitude of d
-	bk = gx * gx + gy * gy + gz * gz; // magnitude of g
-	ct = dx * gx + dy * gy + dz * gz; // d dot g
-	bibk = bi * bk;
-	if (bibk < 1.0e-6)
-	    return 0;
-	ct = ct / Math.sqrt(bibk);
-	if (ct < -1.0)
-	    ct = -1.0;
-	else if (ct > 1.0)
-	    ct = 1.0;
+		bi = dx * dx + dy * dy + dz * dz; // magnitude of d
+		bk = gx * gx + gy * gy + gz * gz; // magnitude of g
+		ct = dx * gx + dy * gy + dz * gz; // d dot g
+		bibk = bi * bk;
+		if (bibk < 1.0e-6)
+			return 0;
+		ct = ct / Math.sqrt(bibk);
+		if (ct < -1.0)
+			ct = -1.0;
+		else if (ct > 1.0)
+			ct = 1.0;
 
-	ap = FastMath.acos(ct);
-	d = xkj * (dz * gy - dy * gz) + ykj * (dx * gz - dz * gx) + zkj
-		* (dy * gx - dx * gy);
-	if (d < 0.0)
-	    ap = -ap;
-	ap = Math.PI - ap;
-	app = 180.0 * ap / Math.PI;
-	if (app > 180.0)
-	    app = app - 360.0;
-	return (app);
-    }
+		ap = FastMath.acos(ct);
+		d = xkj * (dz * gy - dy * gz) + ykj * (dx * gz - dz * gx) + zkj
+				* (dy * gx - dx * gy);
+		if (d < 0.0)
+			ap = -ap;
+		ap = Math.PI - ap;
+		app = 180.0 * ap / Math.PI;
+		if (app > 180.0)
+			app = app - 360.0;
+		return (app);
+	}
 
-    // Returns the torsion angle (in radians) made between
-    // atom1-atom2-atom3-thisatom
-    // This was not written by me, but I have checked it
-    public double torsionInRadians(Atom atom1, Atom atom2, Atom atom3) {
-	double D2R = 0.01745329251994329576;
-	return (D2R * torsion(atom1, atom2, atom3));
-    }
-
-    // Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
-    // OXT, H, H1, H2, H3)
+	// Returns the torsion angle (in radians) made between
+	// atom1-atom2-atom3-thisatom
+	// This was not written by me, but I have checked it
+	public double torsionInRadians(Atom atom1, Atom atom2, Atom atom3) {
+		double D2R = 0.01745329251994329576;
+		return (D2R * torsion(atom1, atom2, atom3));
+	}
+	
+	// Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
+	// OXT, H, H1, H2, H3)
 	public boolean setIsBBatom() {
 		if ( name.equals("C") || name.equals("H") || name.equals("O") || name.equals("N") || name.equalsIgnoreCase("CA")
 			|| name.equalsIgnoreCase("OXT")  || name.equals("H1") || name.equals("H2") || name.equals("H3")
@@ -1083,63 +1079,80 @@ public class Atom implements Serializable {
 			return false;
 	}
 
-    /*
-     * //Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
-     * CB, OXT, H, H1, H2, H3) public boolean setIsBBatom(){ if (
-     * name.equalsIgnoreCase("N") || name.equalsIgnoreCase("CA") ||
-     * name.equalsIgnoreCase("C") || name.equalsIgnoreCase("O") ||
-     * name.equalsIgnoreCase("CB") || name.equalsIgnoreCase("OXT") ||
-     * name.equalsIgnoreCase("H") || name.equalsIgnoreCase("H1") ||
-     * name.equalsIgnoreCase("H2") || name.equalsIgnoreCase("H3") ) return true;
-     * else return false; }
-     */
-
-    // Checks if this is a backbone atom
-    public boolean getIsBBatom() {
-	return isBBatom;
-    }
-
-    // Hopefully these two functions will provide a deep
-    // copy of the current atom instead of just pointing
-    // to it
-    public Atom copy() {
-	return new Atom(this);
-    }
-
-    protected Atom(Atom a) {
-	moleculeAtomNumber = a.moleculeAtomNumber;
-	residueAtomNumber = a.residueAtomNumber;
-	modelAtomNumber = a.modelAtomNumber;
-	moleculeResidueNumber = a.moleculeResidueNumber;
-	strandResidueNumber = a.strandResidueNumber;
-	strandNumber = a.strandNumber;
-	elementNumber = a.elementNumber;
-	numberOfBonds = a.numberOfBonds;
-	elementType = a.elementType;
-	forceFieldType = a.forceFieldType;
-	type = a.type;
-	selected = a.selected;
-	name = a.name;
-	segID = a.segID;
-	charge = a.charge;
-	radius = a.radius;
-	mass = a.mass;
-	isBBatom = a.isBBatom;
-	if (a.bond != null) {
-	    bond = new int[a.bond.length];
-	    for (int i = 0; i < bond.length; i++)
-		bond[i] = a.bond[i];
+	// Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
+	// OXT, H, H1, H2, H3)
+	public boolean setIsBBatomOLD() {
+		if (name.equalsIgnoreCase("N") || name.equalsIgnoreCase("CA")
+				|| name.equalsIgnoreCase("C") || name.equalsIgnoreCase("O")
+				|| name.equalsIgnoreCase("OXT") || name.equalsIgnoreCase("H")
+				|| name.equalsIgnoreCase("H1") || name.equalsIgnoreCase("H2")
+				|| name.equalsIgnoreCase("H3"))
+			return true;
+		else
+			return false;
 	}
 
-	coord = new float[3];
-	for (int i = 0; i < 3; i++)
-	    coord[i] = a.coord[i];
+	/*
+	 * //Checks if this is a backbone atom (the atom name is one of N, CA, C, O,
+	 * CB, OXT, H, H1, H2, H3) public boolean setIsBBatom(){ if (
+	 * name.equalsIgnoreCase("N") || name.equalsIgnoreCase("CA") ||
+	 * name.equalsIgnoreCase("C") || name.equalsIgnoreCase("O") ||
+	 * name.equalsIgnoreCase("CB") || name.equalsIgnoreCase("OXT") ||
+	 * name.equalsIgnoreCase("H") || name.equalsIgnoreCase("H1") ||
+	 * name.equalsIgnoreCase("H2") || name.equalsIgnoreCase("H3") ) return true;
+	 * else return false; }
+	 */
 
-    }
+	// Checks if this is a backbone atom
+	public boolean getIsBBatom() {
+		return isBBatom;
+	}
 
-    public void setCoords(float xpos, float ypos, float zpos) {
-	coord[0] = xpos;
-	coord[1] = ypos;
-	coord[2] = zpos;
-    }
+	// Hopefully these two functions will provide a deep
+	// copy of the current atom instead of just pointing
+	// to it
+	public Atom copy() {
+		return new Atom(this);
+	}
+
+	protected Atom(Atom a) {
+		moleculeAtomNumber = a.moleculeAtomNumber;
+		residueAtomNumber = a.residueAtomNumber;
+		modelAtomNumber = a.modelAtomNumber;
+		moleculeResidueNumber = a.moleculeResidueNumber;
+		strandResidueNumber = a.strandResidueNumber;
+		strandNumber = a.strandNumber;
+		elementNumber = a.elementNumber;
+		numberOfBonds = a.numberOfBonds;
+		elementType = a.elementType;
+		forceFieldType = a.forceFieldType;
+		type = a.type;
+		selected = a.selected;
+		name = a.name;
+		segID = a.segID;
+		charge = a.charge;
+		radius = a.radius;
+		mass = a.mass;
+		isBBatom = a.isBBatom;
+		if (a.bond != null) {
+			bond = new int[a.bond.length];
+			for (int i = 0; i < bond.length; i++)
+				bond[i] = a.bond[i];
+		}
+
+		coord = new float[3];
+		coord[0] = a.coord[0];
+		coord[1] = a.coord[1];
+		coord[2] = a.coord[2];
+		/*
+		for (int i = 0; i < 3; i++)
+			coord[i] = a.coord[i];
+		*/
+	}
+
+	public void setCoords(float xpos, float ypos, float zpos) {
+		coord[0] = xpos;
+		coord[1] = ypos;
+		coord[2] = zpos;
+	}
 }
